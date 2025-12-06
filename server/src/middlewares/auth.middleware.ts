@@ -6,12 +6,12 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      user?: { id: string; name: string; email: string; avatar: string; role: 'customer' | 'admin' } | null // null nếu chưa login
+      user?: { id: number; name: string; email: string; avatar: string; role: 'customer' | 'admin' } | null // null nếu chưa login
     }
   }
 }
 
-const authRequired = async (req: Request, res: Response, next: NextFunction) => {
+export const authRequired = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1]
     if (!token) {
@@ -37,7 +37,7 @@ const authRequired = async (req: Request, res: Response, next: NextFunction) => 
   }
 }
 
-const authOptional = (req: Request, res: Response, next: NextFunction) => {
+export const authOptional = (req: Request, res: Response, next: NextFunction) => {
   const token = req.cookies.accessToken || req.headers.authorization?.split(' ')[1]
 
   if (!token) {
@@ -65,7 +65,7 @@ const authOptional = (req: Request, res: Response, next: NextFunction) => {
   next()
 }
 
-const checkRole = (...allowedRoles: string[]) => {
+export const checkRole = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({
@@ -84,5 +84,3 @@ const checkRole = (...allowedRoles: string[]) => {
     next()
   }
 }
-
-export default { checkRole, authRequired, authOptional }

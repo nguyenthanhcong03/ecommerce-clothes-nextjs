@@ -18,9 +18,9 @@ model User {
   id            Int       @id @default(autoincrement())
   email         String    @unique
   password      String
-  firstName     String?
-  lastName      String?
-  phone         String? 
+  name          String
+  phone         String?   @unique
+  dateOfBirth   DateTime?
   role          UserRole  @default(CUSTOMER)
   isActive      Boolean   @default(true)
   isDeleted     Boolean   @default(false)
@@ -31,7 +31,7 @@ model User {
   orders        Order[]
   reviews       Review[]
   cart          Cart?
-  avatar         Media[] @relation("AvatarImage")
+  avatar  Media? @relation("AvatarImage" ) 
 }
 
 enum UserRole {
@@ -69,7 +69,7 @@ model Category {
   updatedAt     DateTime           @updatedAt
   
   productCategories ProductCategory[]
-  image         Media[] @relation("CategoryImage")
+  image        Media? @relation("CategoryImage") 
 }
 
 // Bảng Product - Sản phẩm
@@ -251,17 +251,17 @@ model Media {
   // Quan hệ với các model khác
   productId     Int?
   variantId     Int?
-  userId        Int?
+  userId        Int?    @unique
   reviewId      Int?
-  categoryId    Int?
+  categoryId    Int?    @unique
   
   createdAt     DateTime  @default(now())
   
   product       Product?  @relation("ProductImages",fields: [productId], references: [id], onDelete: Cascade)
   variant       ProductVariant? @relation("VariantImages",fields: [variantId], references: [id], onDelete: Cascade)
-  user          User?     @relation("AvatarImage",fields: [userId], references: [id], onDelete: Cascade)
   review        Review?   @relation("ReviewImages",fields: [reviewId], references: [id], onDelete: Cascade)
-  category      Category? @relation("CategoryImage",fields: [categoryId], references: [id], onDelete: Cascade)
+  user          User?     @relation("AvatarImage", fields: [userId], references: [id], onDelete: Cascade)
+  category      Category? @relation("CategoryImage", fields: [categoryId], references: [id], onDelete: Cascade)
   
   @@index([productId])
   @@index([variantId])

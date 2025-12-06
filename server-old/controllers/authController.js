@@ -36,8 +36,7 @@ const register = catchAsync(async (req, res) => {
 });
 
 const login = catchAsync(async (req, res) => {
-  const { email, password } = req.body;
-  console.log("email :>> ", email);
+  const { email, password } = req.body; 
   // Tìm user và bao gồm password để verify
   const user = await User.findOne({ email });
   if (!user) throw new AppError(401, "Email hoặc mật khẩu không chính xác");

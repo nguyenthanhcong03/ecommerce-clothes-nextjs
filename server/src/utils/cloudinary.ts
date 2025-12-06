@@ -1,4 +1,4 @@
-import cloudinary from '../config/cloudinary'
+import cloudinary from '@/config/cloudinary'
 
 export const uploadImage = (buffer: Buffer, folder: string) => {
   return new Promise((resolve, reject) => {
@@ -36,4 +36,13 @@ export const uploadVideo = (buffer: Buffer, folder: string) => {
       )
       .end(buffer)
   })
+}
+
+export const deleteImage = async (publicId: string) => {
+  return cloudinary.uploader.destroy(publicId, { resource_type: 'image' })
+}
+
+export const deleteMultiple = async (publicIds: string[]) => {
+  const deletions = publicIds.map((publicId) => deleteImage(publicId))
+  return Promise.all(deletions)
 }
