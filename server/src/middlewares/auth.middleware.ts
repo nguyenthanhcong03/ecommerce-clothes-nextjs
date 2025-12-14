@@ -13,14 +13,14 @@ declare global {
 
 export const authRequired = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1]
+    const token = req.cookies.accessToken || req.headers.authorization?.split(' ')[1]
     if (!token) {
       throw new AppError(401, 'Không có token, truy cập bị từ chối')
     }
 
     // Giải mã và xác minh token
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload
-    if (!decoded || !decoded.userId) {
+    if (!decoded || !decoded.id) {
       throw new AppError(401, 'Token không hợp lệ')
     }
     // Gắn thông tin người dùng vào request để sử dụng trong các middleware hoặc route tiếp theo
@@ -48,7 +48,7 @@ export const authOptional = (req: Request, res: Response, next: NextFunction) =>
   try {
     // Giải mã và xác minh token
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as jwt.JwtPayload
-    if (!decoded || !decoded.userId) {
+    if (!decoded || !decoded.id) {
       throw new AppError(401, 'Token không hợp lệ')
     }
     // Gắn thông tin người dùng vào request để sử dụng trong các middleware hoặc route tiếp theo

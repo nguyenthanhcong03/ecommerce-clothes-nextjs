@@ -11,17 +11,10 @@ export const validate = (schema: ZodObject) => {
         query: req.query,
         params: req.params
       })
+      console.log('object')
       next()
     } catch (error: any) {
-      const zodErrors: {
-        field: string
-        message: string
-      }[] = []
-      error.errors.forEach((err: any) => {
-        const field = err.path.join('.')
-        zodErrors.push({ field, message: err.message })
-      })
-      next(new ValidationError(zodErrors))
+      next(error)
     }
   }
 }

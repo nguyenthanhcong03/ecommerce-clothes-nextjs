@@ -1,6 +1,9 @@
+import { API_ENDPOINTS } from '@/lib/config';
+import { http } from '@/lib/http';
 import { cookies } from 'next/headers';
 
 export async function POST() {
+  console.log('object');
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
   const refreshToken = cookieStore.get('refreshToken')?.value;
@@ -17,24 +20,23 @@ export async function POST() {
     );
   }
   try {
+    console.log('accessToken :>> ', accessToken);
     // Gọi API logout tới backend Express
-    const response = await fetch(`${process.env.API_URL || 'http://localhost:5000'}/api/auth/logout`, {
-      method: 'POST',
+    const response = await http.post(API_ENDPOINTS.AUTH.LOGOUT, null, {
       headers: {
         'Content-Type': 'application/json',
         Cookie: `accessToken=${accessToken}; refreshToken=${refreshToken}`
       }
     });
 
-    const result = await response.json();
-    return Response.json(result);
+    return Response.json(response);
   } catch {
     return Response.json(
       {
-        message: 'Lỗi khi gọi API đến server backend'
+        message: 'Có lỗi xảy ra khi đăng xuất'
       },
       {
-        status: 200
+        status: 500
       }
     );
   }

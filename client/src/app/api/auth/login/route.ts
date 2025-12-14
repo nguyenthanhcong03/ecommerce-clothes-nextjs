@@ -1,3 +1,5 @@
+import { User } from '@/features/auth/authType';
+import { API_ENDPOINTS } from '@/lib/config';
 import { http } from '@/lib/http';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
@@ -6,9 +8,13 @@ export async function POST(request: Request) {
   const body = await request.json();
   const cookieStore = await cookies();
   try {
-    const response = await http.post('api/auth/login', body);
+    const response = await http.post<{
+      user: User;
+      accessToken: string;
+      refreshToken: string;
+    }>(`${API_ENDPOINTS.AUTH.LOGIN}`, body);
+    const { accessToken, refreshToken } = response.data!;
 
-    const { accessToken, refreshToken } = response.data as { accessToken: string; refreshToken: string };
     const decodedAccessToken = jwt.decode(accessToken) as { exp: number };
     const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number };
 
@@ -30,7 +36,7 @@ export async function POST(request: Request) {
   } catch {
     return Response.json(
       {
-        message: 'Có lỗi xảy ra'
+        message: 'Có lỗi xảy ra khi đăng nhập'
       },
       {
         status: 500

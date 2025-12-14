@@ -7,7 +7,8 @@ import bcrypt from 'bcryptjs'
 import { generateAccessToken, generateRefreshToken } from '@/utils/jwt'
 
 export const register = async (req: Request, res: Response) => {
-  const { name, email, phone, password, dateOfBirth } = req.body
+  console.log('object')
+  const { name, email, phone, password } = req.body
 
   // Kiểm tra email và phone tồn tại
   const existedErrors: ValidationError['errors'] = []
@@ -30,20 +31,18 @@ export const register = async (req: Request, res: Response) => {
       name,
       email,
       phone,
-      password: hashedPassword,
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null
+      password: hashedPassword
     },
     select: {
       id: true,
       name: true,
       email: true,
       phone: true,
-      dateOfBirth: true,
       createdAt: true
     }
   })
 
-  responseHandler(res, 201, 'Đăng ký tài khoản thành công', { user })
+  responseHandler(res, 201, 'Đăng ký tài khoản thành công', user)
 }
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
@@ -57,16 +56,16 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       email: true,
       password: true,
       role: true,
-      avatar: { select: { url: true, id: true } }
+      avatar: { select: { url: true, publicId: true } }
     }
   })
   if (!user) {
-    throw new AppError(401, 'Tài khoản hoặc mật khẩu không đúng')
+    throw new AppError(401, 'Tài khoản hoặc mật khẩu không chính xác')
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password)
   if (!isPasswordValid) {
-    throw new AppError(401, 'Tài khoản hoặc mật khẩu không đúng')
+    throw new AppError(401, 'Tài khoản hoặc mật khẩu không chính xác')
   }
 
   const userPayload = {
@@ -81,22 +80,23 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   // Lưu accessToken vào cookie
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    // secure: true,
-    // sameSite: "Strict",
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    path: '/',
     maxAge: Number(process.env.ACCESS_TOKEN_COOKIE_EXPIRES)
   })
 
   // Lưu refreshToken vào cookie
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    // secure: true,
-    // sameSite: "Strict",
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    path: '/',
     maxAge: Number(process.env.REFRESH_TOKEN_COOKIE_EXPIRES)
   })
 
   // Loại bỏ password khỏi user trước khi gửi response
   const { password: _, ...userResponse } = user
-
   responseHandler(res, 200, 'Đăng nhập thành công', {
     user: userResponse,
     accessToken,
@@ -112,16 +112,20 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
     where: {
       id: userId
     },
-    select: {
-      password: false
+    omit: {
+      password: true
     }
   })
   if (!user) throw new AppError(404, 'Không tìm thấy người dùng')
 
-  responseHandler(res, 200, 'Lấy thông tin người dùng thành công', { user })
+  responseHandler(res, 200, 'Lấy thông tin người dùng thành công', user)
 }
 
 export const logout = async (req: Request, res: Response) => {
+  const { accessToken, refreshToken } = req.cookies
+  console.log('accessToken :>> ', accessToken)
+  console.log('refreshToken :>> ', refreshToken)
+
   // Xoá cookie
   res.clearCookie('accessToken', {
     httpOnly: true
@@ -129,6 +133,8 @@ export const logout = async (req: Request, res: Response) => {
   res.clearCookie('refreshToken', {
     httpOnly: true
   })
+
+  console.log('req.cookies :>> ', req.cookies)
   responseHandler(res, 200, 'Đăng xuất thành công')
 }
 
@@ -156,5 +162,5 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
     // secure: true,
   })
 
-  responseHandler(res, 200, 'Làm mới token thành công', { accessToken: newAccessToken })
+  responseHandler(res, 200, 'Làm mới token thành công', newAccessToken)
 }

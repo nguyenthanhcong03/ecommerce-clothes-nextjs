@@ -17,12 +17,14 @@ export function AuthProvider({ children, accessToken, refreshToken }: AuthProvid
   const storeLoading = useAuthStore((state) => state.isLoading);
 
   // Gọi useAuthStatus để check auth từ server mỗi khi reload
-  const { data: user, isLoading: queryLoading, error, isSuccess, isError, isFetched } = useAuthStatusQuery(accessToken);
-
-  // Set loading state - chỉ loading khi query đang chạy và chưa có dữ liệu
-  useEffect(() => {
-    setIsLoading(queryLoading && !isFetched);
-  }, [queryLoading, isFetched, setIsLoading]);
+  const {
+    data: user,
+    isLoading: queryLoading,
+    error,
+    isSuccess,
+    isError,
+    isFetched
+  } = useAuthStatusQuery(accessToken || refreshToken);
 
   // Set lại dữ liệu vào store mỗi khi có kết quả từ server
   useEffect(() => {
@@ -30,7 +32,7 @@ export function AuthProvider({ children, accessToken, refreshToken }: AuthProvid
       if (user) {
         setUser(user);
         setIsAuthenticated(true);
-        console.log('🔐 Auth: Đăng nhập thành công -', user.username, `(${user.role})`);
+        console.log('🔐 Auth: Đăng nhập thành công -', user.name, `(${user.role})`);
       } else {
         setUser(null);
         setIsAuthenticated(false);

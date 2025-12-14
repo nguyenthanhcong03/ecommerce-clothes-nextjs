@@ -1,5 +1,5 @@
 export interface Variant {
-  _id: string;
+  id: number;
   sku: string;
   size: string;
   color: string;
@@ -9,11 +9,11 @@ export interface Variant {
 }
 
 export interface Product {
-  _id: string;
+  id: number;
   name: string;
   description?: string;
   categoryId: {
-    _id: string;
+    id: number;
     name: string;
   };
   brand: string;
@@ -32,9 +32,9 @@ export interface Product {
 }
 
 export interface Review {
-  _id: string;
+  id: number;
   userId: {
-    _id: string;
+    id: number;
     firstName: string;
     lastName: string;
     avatar?: string;

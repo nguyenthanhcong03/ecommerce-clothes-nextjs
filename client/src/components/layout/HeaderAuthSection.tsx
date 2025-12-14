@@ -12,17 +12,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/features/auth/authStore';
 import { useLogoutMutation } from '@/features/auth/useAuth';
+import { ROUTE } from '@/lib/config';
 import { CircleUserRound, LogOut, Settings, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
 export default function HeaderAuthSection() {
   const { user, isAuthenticated } = useAuthStore();
-  const { mutateAsync } = useLogoutMutation();
+  const { mutate: logout } = useLogoutMutation();
 
   const handleLogout = async () => {
     try {
-      await mutateAsync();
+      await logout();
       toast.success('Đăng xuất thành công');
     } catch (error) {
       toast.error('Đăng xuất thất bại. Vui lòng thử lại.');
@@ -36,29 +37,27 @@ export default function HeaderAuthSection() {
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
               <Avatar className='h-8 w-8'>
-                <AvatarImage src={user.avatar} alt={user.username} />
-                <AvatarFallback className='bg-blue-600 text-white'>
-                  {user.firstName.charAt(0).toUpperCase()}
-                </AvatarFallback>
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback className='bg-blue-600 text-white'>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className='w-56' align='end' forceMount>
             <DropdownMenuLabel className='font-normal'>
               <div className='flex flex-col space-y-1'>
-                <p className='text-sm leading-none font-medium'>{user.username}</p>
+                <p className='text-sm leading-none font-medium'>{user.name}</p>
                 <p className='text-muted-foreground text-xs leading-none'>{user.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href='/profile' className='cursor-pointer'>
+              <Link href={ROUTE.ACCOUNT.PROFILE} className='cursor-pointer'>
                 <User className='mr-2 h-4 w-4' />
                 <span>Hồ sơ</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href='/orders' className='cursor-pointer'>
+              <Link href={ROUTE.ACCOUNT.ORDERS} className='cursor-pointer'>
                 <ShoppingBag className='mr-2 h-4 w-4' />
                 <span>Đơn hàng</span>
               </Link>
@@ -77,7 +76,7 @@ export default function HeaderAuthSection() {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <Link href={'/login'} className='flex items-center gap-2'>
+        <Link href={ROUTE.LOGIN} className='flex items-center gap-2'>
           <CircleUserRound />
           Đăng nhập
         </Link>

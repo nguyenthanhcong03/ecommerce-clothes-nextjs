@@ -3,14 +3,14 @@ import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware'
-import authRoutes from './modules/auth/auth.route.js'
+import authRoutes from './modules/auth/auth.route'
 import categoryRoutes from './modules/category/category.route'
 import productRoutes from './modules/product/product.route'
 
 const app = express()
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: process.env.CLIENT_URL,
     credentials: true
   })
 )

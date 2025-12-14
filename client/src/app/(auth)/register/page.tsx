@@ -16,8 +16,7 @@ import { z } from 'zod';
 
 export const registerSchema = z
   .object({
-    firstName: z.string().min(2, 'Tên phải có ít nhất 2 ký tự').max(50),
-    lastName: z.string().min(2, 'Họ phải có ít nhất 2 ký tự').max(50),
+    name: z.string().min(2, 'Tên phải có ít nhất 2 ký tự').max(100),
     email: z.string().email('Email không hợp lệ'),
     phone: z.string().regex(/^(\+\d{1,3}[- ]?)?\d{10}$/, 'Số điện thoại không hợp lệ'),
     password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
@@ -42,8 +41,7 @@ export default function RegisterPage() {
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
+      name: '',
       email: '',
       phone: '',
       password: '',
@@ -53,14 +51,12 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterInput) => {
     try {
-      const { confirmPassword, ...payload } = data;
-
-      const result = await mutateAsync(payload);
+      const result = await mutateAsync(data);
       toast.success('Đăng ký thành công!');
 
       setTimeout(() => router.replace('/login'), 1000);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Đăng ký thất bại');
+      toast.error(error.message || 'Đăng ký thất bại');
     }
   };
 
@@ -72,53 +68,28 @@ export default function RegisterPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-        <div className='grid grid-cols-2 gap-4'>
-          {/* FIRST NAME */}
-          <Controller
-            control={control}
-            name='firstName'
-            render={({ field }) => (
-              <Field data-invalid={!!errors.firstName}>
-                <FieldLabel htmlFor='firstName'>
-                  <UserIcon className='h-4 w-4 text-gray-500' />
-                  Tên
-                </FieldLabel>
-                <FieldContent>
-                  <InputCustom
-                    {...field}
-                    id='firstName'
-                    placeholder='Nhập tên'
-                    className={errors.firstName ? 'border-destructive' : ''}
-                  />
-                  <FieldError>{errors.firstName?.message}</FieldError>
-                </FieldContent>
-              </Field>
-            )}
-          />
-
-          {/* LAST NAME */}
-          <Controller
-            control={control}
-            name='lastName'
-            render={({ field }) => (
-              <Field data-invalid={!!errors.lastName}>
-                <FieldLabel htmlFor='lastName'>
-                  <UserIcon className='h-4 w-4 text-gray-500' />
-                  Họ
-                </FieldLabel>
-                <FieldContent>
-                  <InputCustom
-                    {...field}
-                    id='lastName'
-                    placeholder='Nhập họ'
-                    className={errors.lastName ? 'border-destructive' : ''}
-                  />
-                  <FieldError>{errors.lastName?.message}</FieldError>
-                </FieldContent>
-              </Field>
-            )}
-          />
-        </div>
+        {/* NAME */}
+        <Controller
+          control={control}
+          name='name'
+          render={({ field }) => (
+            <Field data-invalid={!!errors.name}>
+              <FieldLabel htmlFor='name'>
+                <UserIcon className='h-4 w-4 text-gray-500' />
+                Họ và tên
+              </FieldLabel>
+              <FieldContent>
+                <InputCustom
+                  {...field}
+                  id='name'
+                  placeholder='Nhập tên'
+                  className={errors.name ? 'border-destructive' : ''}
+                />
+                <FieldError>{errors.name?.message}</FieldError>
+              </FieldContent>
+            </Field>
+          )}
+        />
         {/* EMAIL */}
         <Controller
           control={control}

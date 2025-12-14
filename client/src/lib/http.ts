@@ -1,5 +1,7 @@
 import { ApiError, ApiResponse } from '@/features/auth/authType';
+import { API_ENDPOINTS } from './config';
 import { normalizePath } from './utils';
+import { authService } from '@/features/auth/authService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -12,7 +14,7 @@ interface RequestOptions extends RequestInit {
 class Http {
   private async refreshToken(): Promise<boolean> {
     try {
-      const response = await fetch(`http://localhost:3000/api/auth/refresh-token`, {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH_TOKEN}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -28,7 +30,7 @@ class Http {
       return true;
     } catch (error) {
       // Nếu refresh thất bại, redirect to login hoặc logout user
-      console.error('Refresh token failed:', error);
+      console.error('Refresh token thất bại:', error);
       // Có thể gọi logout API để clear cookies
       // try {
       //   await fetch(`/api/auth/logout`, {
@@ -45,7 +47,7 @@ class Http {
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     const contentType = response.headers.get('content-type');
 
-    if (!contentType || !contentType.includes('application/json')) {
+    if (!contentType || !contentType?.includes('application/json')) {
       throw new Error('Server trả về response không phải JSON');
     }
 
@@ -87,7 +89,7 @@ class Http {
       const normalizedEndpoint = normalizePath(endpoint);
       fullUrl = baseUrl ? `${baseUrl}/${normalizedEndpoint}` : `/${normalizedEndpoint}`;
     }
-    console.log('fullUrl', fullUrl);
+    console.log('fullUrl:', fullUrl);
 
     let body: FormData | string | undefined = undefined;
     if (options?.body instanceof FormData) {
@@ -134,15 +136,6 @@ class Http {
 
       return this.handleResponse<T>(response);
     } catch (error) {
-      if (error instanceof Error) {
-        const apiError: ApiError = {
-          message: error.message,
-          code: 'NETWORK_ERROR',
-          statusCode: 0,
-          errors: {}
-        };
-        throw apiError;
-      }
       throw error;
     }
   }

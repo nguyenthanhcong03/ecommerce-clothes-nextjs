@@ -1,5 +1,5 @@
 import { deleteMultiple, uploadMultiple } from '@/utils/cloudinary'
-import { AppError } from '../../utils/error'
+import { AppError } from '@/utils/error'
 import { CreateProductInput, UpdateProductInput, GetProductsQuery } from './product.schema'
 import { prisma } from '@/lib/prisma'
 

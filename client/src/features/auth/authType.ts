@@ -1,17 +1,25 @@
-export type ApiError = {
-  success: boolean;
+export type ValidationError = {
+  field: string;
   message: string;
-  statusCode: number;
-  errors: Record<string, string[]>;
-  stack?: string;
 };
 
-export type ApiResponse<T> = {
-  success: boolean; // Trạng thái thành công hay thất bại
-  message?: string; // Thông điệp mô tả kết quả
-  data?: T; // Dữ liệu trả về (nếu có)
-  errors?: any; // Chi tiết lỗi (nếu có)
-  statusCode?: number; // Mã HTTP status
+// export type ApiResponse<T> = {
+//   success: boolean; // Trạng thái thành công hay thất bại
+//   message: string; // Thông điệp mô tả kết quả
+//   data: T | null; // Dữ liệu trả về (nếu có)
+//   statusCode: number; // Mã trạng thái HTTP
+//   errors?: ValidationError[]; // Mảng lỗi xác thực (nếu có)
+//   stack?: string; // Ngăn xếp lỗi (chỉ dành cho môi trường phát triển)
+// };
+
+export type ApiResponse<T> = { success: true; message: string; data: T | null };
+
+export type ApiError = {
+  success: false;
+  message: string;
+  statusCode: number;
+  errors?: ValidationError[];
+  stack?: string;
 };
 
 export type PaginationResponse<T> = {
@@ -23,10 +31,9 @@ export type PaginationResponse<T> = {
 };
 
 export type User = {
-  _id: string;
+  id: number;
   email: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   role: 'customer' | 'admin';
   avatar?: string;
   phone?: string;
@@ -35,19 +42,19 @@ export type User = {
   updatedAt: string;
 };
 
-export type LoginCredentials = {
+export type LoginInput = {
   email: string;
   password: string;
 };
 
-export type RegisterData = {
+export type RegisterInput = {
+  name: string;
   email: string;
+  phone: string;
   password: string;
-  firstName: string;
-  lastName: string;
 };
 
-export type AuthResponse = {
+export type LoginResponse = {
   user: User;
   accessToken: string;
   refreshToken: string;

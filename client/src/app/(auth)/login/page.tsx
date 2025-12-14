@@ -26,7 +26,7 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { mutateAsync, isPending, isSuccess } = useLoginMutation();
+  const { mutateAsync: login, isPending, isSuccess } = useLoginMutation();
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
@@ -46,7 +46,7 @@ export default function LoginPage() {
     const { email, password } = data;
 
     try {
-      const result = await mutateAsync({ email, password });
+      const result = await login({ email, password });
       toast.success('Đăng nhập thành công!');
 
       // Lấy thông tin user từ kết quả đăng nhập
@@ -56,9 +56,8 @@ export default function LoginPage() {
       const redirectPath = userRole === 'admin' ? '/admin' : '/';
 
       router.replace(redirectPath);
-    } catch (error) {
+    } catch {
       toast.error('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin đăng nhập.');
-      console.error('Lỗi đăng nhập:', error);
     }
   };
 

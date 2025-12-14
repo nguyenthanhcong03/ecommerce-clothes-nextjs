@@ -50,7 +50,7 @@ export default async function CategorySection() {
       <Headline text1='Khám phá' text2='Danh mục nổi bật' />
 
       <div className='mt-6 flex justify-center gap-4 rounded-md'>
-        {categoryResponse &&
+        {categoryResponse?.data &&
           categoryResponse.data.map((category) => <CategoryCard key={category._id} category={category} />)}
       </div>
     </section>

@@ -18,6 +18,7 @@ import {
   deleteProduct,
   hardDeleteProduct
 } from './product.controller'
+import variantRoutes from './variant.route'
 
 const router = Router()
 
@@ -36,5 +37,8 @@ router.put('/:id', upload.array('images', 10), validate(updateProductSchema), as
 router.delete('/:id', validate(deleteProductSchema), asyncHandler(deleteProduct))
 
 router.delete('/:id/hard', validate(deleteProductSchema), asyncHandler(hardDeleteProduct))
+
+// Variant routes - mount với productId param
+router.use('/:productId/variants', variantRoutes)
 
 export default router

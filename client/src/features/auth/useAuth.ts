@@ -1,7 +1,6 @@
 import { authService } from '@/features/auth/authService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from './authStore';
-import { AuthResponse } from './authType';
 
 // Query keys
 export const AUTH_QUERY_KEYS = {
@@ -17,29 +16,26 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: authService.login,
     onSuccess: (data) => {
-      if (data && data.user) {
-        setUserLogin(data.user);
-        queryClient.setQueryData(AUTH_QUERY_KEYS.user, data.user);
-        queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
-      }
+      if (!data) return;
+      setUserLogin(data.user);
+      queryClient.setQueryData(AUTH_QUERY_KEYS.user, data.user);
+      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
     },
     onError: (error) => {
-      console.error('Có lỗi xảy ra khi đăng nhập:', error);
+      throw error;
     }
   });
 };
 
 export const useRegisterMutation = () => {
-  const queryClient = useQueryClient();
-  const { login: setUserLogin } = useAuthStore();
+  // const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: authService.register,
-    onSuccess: (data) => {
-      setUserLogin(data.user);
-      queryClient.setQueryData(AUTH_QUERY_KEYS.user, data.user);
-      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
-    }
+    mutationFn: authService.register
+    // onSuccess: (data) => {
+    //   queryClient.setQueryData(AUTH_QUERY_KEYS.user, data.user);
+    //   queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user });
+    // }
   });
 };
 
@@ -98,7 +94,6 @@ export const useResetPasswordMutation = () => {
   });
 };
 
-// Hook to check authentication status - chỉ fetch data, không tự động set store
 export const useAuthStatusQuery = (accessToken?: string) => {
   return useQuery({
     queryKey: AUTH_QUERY_KEYS.user,

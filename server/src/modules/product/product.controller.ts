@@ -8,7 +8,7 @@ export const getProducts = async (req: Request, res: Response) => {
   const query = req.query as unknown as GetProductsQuery
   const result = await productService.getProducts(query)
 
-  responseHandler(res, 200, 'Products fetched successfully', result)
+  responseHandler(res, 200, 'Lấy danh sách sản phẩm thành công', result)
 }
 
 // GET /api/products/:id - Lấy product theo ID
@@ -16,7 +16,7 @@ export const getProductById = async (req: Request, res: Response) => {
   const id = parseInt(req.params.id)
   const product = await productService.getProductById(id)
 
-  responseHandler(res, 200, 'Product fetched successfully', { data: product })
+  responseHandler(res, 200, 'Lấy sản phẩm thành công', { data: product })
 }
 
 // GET /api/products/slug/:slug - Lấy product theo slug
@@ -24,7 +24,7 @@ export const getProductBySlug = async (req: Request, res: Response) => {
   const slug = req.params.slug
   const product = await productService.getProductBySlug(slug)
 
-  responseHandler(res, 200, 'Product fetched successfully', { data: product })
+  responseHandler(res, 200, 'Lấy sản phẩm thành công', { data: product })
 }
 
 // POST /api/products - Tạo product mới
@@ -38,7 +38,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
   const product = await productService.createProduct(data, files)
 
-  responseHandler(res, 201, 'Product created successfully', { data: product })
+  responseHandler(res, 201, 'Tạo sản phảm thành công', { data: product })
 }
 
 // PUT /api/products/:id - Cập nhật product
@@ -49,7 +49,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
   const product = await productService.updateProduct(id, data, files)
 
-  responseHandler(res, 200, 'Product updated successfully', { data: product })
+  responseHandler(res, 200, 'Cập nhật sản phẩm thành công', { data: product })
 }
 
 // DELETE /api/products/:id - Xóa mềm product

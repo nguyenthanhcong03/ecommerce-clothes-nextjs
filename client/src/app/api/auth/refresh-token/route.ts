@@ -1,4 +1,6 @@
 import { authService } from '@/features/auth/authService';
+import { API_ENDPOINTS } from '@/lib/config';
+import { http } from '@/lib/http';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
@@ -16,7 +18,18 @@ export async function POST() {
     );
   }
   try {
-    const newAccessToken = (await authService.refreshToken(refreshToken)) as string;
+    const response = await http.post<{
+      accessToken: string;
+    }>(`${API_ENDPOINTS.AUTH.REFRESH_TOKEN}`, null, {
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: `refreshToken=${refreshToken}`
+      }
+    });
+    if (!response.data?.accessToken) {
+      throw new Error('Refresh token thất bại');
+    }
+    const newAccessToken = response.data?.accessToken;
 
     const decodedAccessToken = jwt.decode(newAccessToken) as {
       exp: number;
