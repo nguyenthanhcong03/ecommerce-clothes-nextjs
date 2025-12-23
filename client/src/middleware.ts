@@ -1,90 +1,78 @@
-// // import { NextResponse } from 'next/server';
-// // import type { NextRequest } from 'next/server';
-// // import { jwtVerify } from 'jose';
+// import { jwtVerify } from 'jose';
+// import { NextRequest, NextResponse } from 'next/server';
 
-// // // Các route không yêu cầu login
-// // const PUBLIC_ROUTES = ['/', '/login', '/register', '/products', '/products/'];
+// type Role = 'ADMIN' | 'CUSTOMER';
 
-// // // Các route chỉ admin được vào
-// // const ADMIN_ROUTES = ['/admin'];
+// const PUBLIC_ROUTES = ['/login', '/register', '/news', '/shop', '/about', '/contact'];
+// const ADMIN_ROUTES = ['/admin'];
 
-// // // Tạo SECRET cho jose (Edge bắt buộc)
-// // const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+// const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'ABCXYZ');
 
-// // export async function middleware(req: NextRequest) {
-// //   const { pathname } = req.nextUrl;
+// function isPublicRoute(pathname: string) {
+//   if (pathname === '/') return true;
+//   return PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+// }
 
-// //   // 1️⃣ Bỏ qua các file tĩnh và next internal (bắt buộc)
-// //   if (
-// //     pathname.startsWith('/_next') ||
-// //     pathname.startsWith('/favicon.ico') ||
-// //     pathname.startsWith('/images') ||
-// //     pathname.startsWith('/assets')
-// //   ) {
-// //     return NextResponse.next();
-// //   }
+// export async function middleware(req: NextRequest) {
+//   const { pathname } = req.nextUrl;
 
-// //   // 2️⃣ Check Public routes: không yêu cầu login
-// //   const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
-// //   if (isPublic) {
-// //     return NextResponse.next();
-// //   }
+//   // Skip static
+//   if (
+//     pathname.startsWith('/_next') ||
+//     pathname.startsWith('/favicon.ico') ||
+//     pathname.startsWith('/images') ||
+//     pathname.startsWith('/assets')
+//   ) {
+//     return NextResponse.next();
+//   }
 
-// //   // 3️⃣ Check token
-// //   const accessToken = req.cookies.get('accessToken')?.value;
+//   const accessToken = req.cookies.get('accessToken')?.value;
+//   const refreshToken = req.cookies.get('refreshToken')?.value;
 
-// //   if (!accessToken) {
-// //     // Chưa login → redirect về login kèm returnUrl
-// //     const loginUrl = new URL('/login', req.url);
-// //     loginUrl.searchParams.set('returnUrl', pathname);
-// //     return NextResponse.redirect(loginUrl);
-// //   }
+//   // Public routes
+//   if (isPublicRoute(pathname)) {
+//     if (pathname === '/login' && accessToken) {
+//       return NextResponse.redirect(new URL('/', req.url));
+//     }
+//     return NextResponse.next();
+//   }
 
-// //   // 4️⃣ Decode JWT (edge-safe)
-// //   let payload: any;
-// //   try {
-// //     const decoded = await jwtVerify(accessToken, SECRET);
-// //     payload = decoded.payload; // { id, role, email }
-// //   } catch (e) {
-// //     // Token invalid / expired
-// //     return NextResponse.redirect(new URL('/login', req.url));
-// //   }
+//   // Protected routes
+//   if (!accessToken) {
+//     const loginUrl = new URL('/login', req.url);
+//     loginUrl.searchParams.set('returnUrl', pathname);
+//     return NextResponse.redirect(loginUrl);
+//   }
 
-// //   const role = payload.role;
+//   // Decode / verify token
+//   let payload: any;
+//   try {
+//     const decoded = await jwtVerify(accessToken, SECRET);
+//     payload = decoded.payload;
+//   } catch {
+//     return NextResponse.redirect(new URL('/login', req.url));
+//   }
 
-// //   // 5️⃣ Check admin routes
-// //   const isAdminRoute = ADMIN_ROUTES.some((route) => pathname.startsWith(route));
+//   const role = payload.role as Role;
 
-// //   if (isAdminRoute && role !== 'admin') {
-// //     return NextResponse.redirect(new URL('/403', req.url));
-// //   }
+//   // Admin routes
+//   if (ADMIN_ROUTES.some((route) => pathname.startsWith(route)) && role !== 'ADMIN') {
+//     return NextResponse.redirect(new URL('/403', req.url));
+//   }
 
-// //   // 6️⃣ Hợp lệ → cho vào
-// //   return NextResponse.next();
-// // }
-
-// // // Chỉ áp dụng cho những route cần thiết (tối ưu performance)
-// // export const config = {
-// //   matcher: '/:path*'
-// // };
-
-// // // export const config = {
-// // //   matcher: [
-// // //     '/login',
-// // //     '/dashboard/:path*',
-// // //     '/profile/:path*',
-// // //     '/orders/:path*'
-// // //   ]
-// // // }
-import { NextRequest, NextResponse } from 'next/server';
+//   return NextResponse.next();
+// }
 import { jwtVerify } from 'jose';
+import { NextRequest, NextResponse } from 'next/server';
+import { http } from './lib/http';
 
 type Role = 'ADMIN' | 'CUSTOMER';
 
 const PUBLIC_ROUTES = ['/login', '/register', '/news', '/shop', '/about', '/contact'];
 const ADMIN_ROUTES = ['/admin'];
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'ABCXYZ');
+const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
 
 function isPublicRoute(pathname: string) {
   if (pathname === '/') return true;
@@ -94,7 +82,7 @@ function isPublicRoute(pathname: string) {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip static
+  // Skip static files
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon.ico') ||
@@ -105,37 +93,65 @@ export async function middleware(req: NextRequest) {
   }
 
   const accessToken = req.cookies.get('accessToken')?.value;
+  const refreshToken = req.cookies.get('refreshToken')?.value;
 
-  // Public routes
+  /* ================= PUBLIC ================= */
   if (isPublicRoute(pathname)) {
-    if (pathname === '/login' && accessToken) {
+    if (pathname.startsWith('/login') && accessToken) {
       return NextResponse.redirect(new URL('/', req.url));
     }
     return NextResponse.next();
   }
 
-  // Protected routes
-  if (!accessToken) {
+  /* ================= PROTECTED ================= */
+
+  // ❗ Không có refresh token → login luôn
+  if (!refreshToken && !pathname.startsWith('/login')) {
+    console.log('pathname :>> ', pathname);
     const loginUrl = new URL('/login', req.url);
-    loginUrl.searchParams.set('returnUrl', pathname);
+    // loginUrl.searchParams.set('returnUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Decode / verify token
-  let payload: any;
-  try {
-    const decoded = await jwtVerify(accessToken, SECRET);
-    payload = decoded.payload;
-  } catch {
-    return NextResponse.redirect(new URL('/login', req.url));
+  // Có access token → verify
+  if (accessToken) {
+    try {
+      const { payload } = await jwtVerify(accessToken, SECRET);
+
+      // Check role admin
+      if (ADMIN_ROUTES.some((route) => pathname.startsWith(route)) && payload.role !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/403', req.url));
+      }
+
+      return NextResponse.next();
+    } catch {
+      // ❗ access token hết hạn → thử refresh
+      // const refreshRes = await http.post(`api/auth/refresh-token`, null, {
+      //   baseUrl: ''
+      // });
+      // if (!refreshRes) {
+      //   return redirectToLogin(req, pathname);
+      // }
+    }
   }
 
-  const role = payload.role as Role;
+  /* ================= REFRESH ================= */
 
-  // Admin routes
-  if (ADMIN_ROUTES.some((route) => pathname.startsWith(route)) && role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/403', req.url));
-  }
+  // const refreshRes = await fetch(`${API_BASE_URL}/auth/refresh`, {
+  //   method: 'POST',
+  //   headers: {
+  //     cookie: `refreshToken=${refreshToken}`
+  //   }
+  // });
 
+  // if (!refreshRes.ok) {
+  //   return redirectToLogin(req, pathname);
+  // }
+
+  // refresh OK → cho qua
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ['/me', '/login', '/register', '/admin/:path*']
+};

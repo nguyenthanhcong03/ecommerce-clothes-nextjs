@@ -1,6 +1,6 @@
-import { authService } from '@/features/auth/authService';
+import { authService } from '@/services/authService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from './authStore';
+import { useAuthStore } from '../../store/authStore';
 
 // Query keys
 export const AUTH_QUERY_KEYS = {

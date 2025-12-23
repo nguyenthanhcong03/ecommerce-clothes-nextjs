@@ -3,7 +3,7 @@ import ProductInfo from '@/app/(customer)/product/[id]/_components/ProductPrice'
 import ProductReviews from '@/app/(customer)/product/[id]/_components/ProductReviews';
 import ProductVariantSelector from '@/components/product/ProductVariantSelector';
 import RelatedProducts from '@/app/(customer)/product/[id]/_components/RelatedProducts';
-import { productService } from '@/features/product/productService';
+import { productService } from '@/services/productService';
 import { Star } from 'lucide-react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';

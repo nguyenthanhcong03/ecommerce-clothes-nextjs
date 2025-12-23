@@ -1,5 +1,5 @@
 'use client';
-import { Product } from '@/features/product/productType';
+import { Product } from '@/types/productType';
 import { getSelectedPrice } from '@/features/product/utils';
 import { formatCurrency } from '@/lib/utils';
 import { useProductVariantStore } from '@/store/productVariantStore';

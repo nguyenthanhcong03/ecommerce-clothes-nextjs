@@ -1,10 +1,11 @@
-import { User } from '@/features/auth/authType';
+import { User } from '@/types/authType';
 import { API_ENDPOINTS } from '@/lib/config';
 import { http } from '@/lib/http';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
+  console.log('----------');
   const body = await request.json();
   const cookieStore = await cookies();
   try {
@@ -13,7 +14,8 @@ export async function POST(request: Request) {
       accessToken: string;
       refreshToken: string;
     }>(`${API_ENDPOINTS.AUTH.LOGIN}`, body);
-    const { accessToken, refreshToken } = response.data!;
+    console.log('response :>> ', response);
+    const { accessToken, refreshToken } = response.data;
 
     const decodedAccessToken = jwt.decode(accessToken) as { exp: number };
     const decodedRefreshToken = jwt.decode(refreshToken) as { exp: number };

@@ -1,7 +1,6 @@
-import { ApiError, ApiResponse } from '@/features/auth/authType';
+import { ApiError, ApiResponse } from '@/types/authType';
 import { API_ENDPOINTS } from './config';
 import { normalizePath } from './utils';
-import { authService } from '@/features/auth/authService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -165,16 +164,12 @@ class Http {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 
-  // Upload files (multipart/form-data)
-  async upload<T = unknown>(
-    endpoint: string,
-    formData: FormData,
-    options: RequestOptions = {}
-  ): Promise<ApiResponse<T>> {
+  // PATCH method
+  async patch<T = unknown>(endpoint: string, data?: any, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...options,
-      method: 'POST',
-      body: formData
+      method: 'PATCH',
+      body: data
     });
   }
 }

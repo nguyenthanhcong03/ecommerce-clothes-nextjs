@@ -3,7 +3,6 @@ import { http } from '@/lib/http';
 import { cookies } from 'next/headers';
 
 export async function POST() {
-  console.log('object');
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken')?.value;
   const refreshToken = cookieStore.get('refreshToken')?.value;

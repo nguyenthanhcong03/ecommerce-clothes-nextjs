@@ -1,6 +1,6 @@
 'use client';
 
-import { Product, Review } from '@/features/product/productType';
+import { Product, Review } from '@/types/productType';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../../../../components/ui/accordion';
 import ReviewStatistics from './ReviewStatistics';
 import ReviewList from './ReviewList';

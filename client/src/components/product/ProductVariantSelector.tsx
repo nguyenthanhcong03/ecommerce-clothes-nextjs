@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button, ButtonCustom } from '@/components/ui/button';
-import { Product } from '@/features/product/productType';
+import { Product } from '@/types/productType';
 import useProductVariants from '@/hooks/useVariant';
 import { formatCurrency } from '@/lib/utils';
 import { Minus, Plus, ShoppingCart } from 'lucide-react';

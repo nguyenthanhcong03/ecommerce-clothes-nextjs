@@ -1,5 +1,5 @@
 'use client';
-import { Product } from '@/features/product/productType';
+import { Product } from '@/types/productType';
 import { formatCurrency } from '@/lib/utils';
 // import { useProductPrice } from '@/hooks/useProductPrice';
 import { Eye, Star } from 'lucide-react';
@@ -45,7 +45,7 @@ function ProductCard({ item, isShowActionButtons = true, useVariantContext = fal
 
   // Hàm navigate đến trang chi tiết sản phẩm
   const handleNavigateToDetail = () => {
-    router.push(`/product/${item._id}`);
+    router.push(`/product/${item.id}`);
   };
 
   return (
@@ -53,20 +53,28 @@ function ProductCard({ item, isShowActionButtons = true, useVariantContext = fal
       <div className='flex h-full w-full flex-col items-start justify-start overflow-hidden rounded-md border bg-white transition-all duration-300 hover:opacity-95 hover:shadow-xl'>
         <div className='group relative max-h-[340px] w-full cursor-pointer'>
           <div onClick={handleNavigateToDetail}>
-            <Image
-              className='max-h-[340px] w-full object-cover'
-              width={340}
-              height={500}
-              src={item?.images[0]?.url}
-              alt={item?.name}
-            />
-            <Image
-              width={340}
-              height={500}
-              className='absolute top-0 right-0 bottom-0 left-0 max-h-[340px] w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300'
-              alt={item?.name}
-              src={item?.images[1]?.url || item?.images[0].url}
-            />
+            {item.images && item.images.length > 0 ? (
+              <>
+                <Image
+                  className='max-h-[340px] w-full object-cover'
+                  width={340}
+                  height={500}
+                  src={item?.images[0]?.url}
+                  alt={item?.name}
+                />
+                <Image
+                  width={340}
+                  height={500}
+                  className='absolute top-0 right-0 bottom-0 left-0 max-h-[340px] w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:transition-opacity group-hover:duration-300'
+                  alt={item?.name}
+                  src={item?.images[1]?.url || item?.images[0].url}
+                />
+              </>
+            ) : (
+              <div className='flex h-[340px] w-full items-center justify-center bg-gray-200 text-gray-500'>
+                No Image Available
+              </div>
+            )}
           </div>
 
           {isShowActionButtons && (

@@ -1,6 +1,6 @@
 import Headline from '@/components/common/Headline';
 import ProductCard from '@/components/common/ProductCard';
-import { productService } from '@/features/product/productService';
+import { productService } from '@/services/productService';
 
 const FeaturedProducts = async () => {
   const featuredProducts = await productService.getAllProducts();

@@ -1,4 +1,4 @@
-import { Variant } from '@/features/product/productType';
+import { Variant } from '@/types/productType';
 import { findVariant } from '@/features/product/utils';
 import { useProductVariantStore } from '@/store/productVariantStore';
 import { useEffect, useMemo } from 'react';

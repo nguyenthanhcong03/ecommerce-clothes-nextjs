@@ -1,4 +1,4 @@
-import { Variant } from '@/features/product/productType';
+import { Variant } from '@/types/productType';
 import { create } from 'zustand';
 
 interface ProductVariantState {

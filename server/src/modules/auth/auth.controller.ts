@@ -1,13 +1,12 @@
-import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
-import { AppError, ValidationError } from '@/utils/error'
-import { responseHandler } from '@/utils/responseHandler'
 import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
+import { AppError, ValidationError } from '@/utils/error'
 import { generateAccessToken, generateRefreshToken } from '@/utils/jwt'
+import { responseHandler } from '@/utils/responseHandler'
+import bcrypt from 'bcryptjs'
+import { NextFunction, Request, Response } from 'express'
+import jwt from 'jsonwebtoken'
 
 export const register = async (req: Request, res: Response) => {
-  console.log('object')
   const { name, email, phone, password } = req.body
 
   // Kiểm tra email và phone tồn tại

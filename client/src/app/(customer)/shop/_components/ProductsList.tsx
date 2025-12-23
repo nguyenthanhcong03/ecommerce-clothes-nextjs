@@ -1,5 +1,5 @@
 import ProductCard from '@/components/common/ProductCard';
-import { Product } from '@/features/product/productType';
+import { Product } from '@/types/productType';
 import React from 'react';
 
 type ProductsListProps = {

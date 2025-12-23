@@ -1,11 +1,10 @@
+import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from '@/providers/AuthProvider';
 import type { Metadata } from 'next';
 import { Geist, Roboto_Mono } from 'next/font/google';
-import { AuthProvider } from '@/providers/AuthProvider';
-import './globals.css';
-import { ReactQueryProvider } from '../providers/QueryProvider';
 import { cookies } from 'next/headers';
-import { Toaster } from '@/components/ui/sonner';
-import DisableScrollRestoration from '@/providers/DisableScroll';
+import { ReactQueryProvider } from '../providers/QueryProvider';
+import './globals.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

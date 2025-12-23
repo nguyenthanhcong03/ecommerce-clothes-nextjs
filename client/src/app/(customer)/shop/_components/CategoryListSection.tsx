@@ -1,5 +1,5 @@
 'use client';
-import { Category } from '@/features/category/categoryType';
+import { Category } from '@/types/categoryType';
 import { ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';

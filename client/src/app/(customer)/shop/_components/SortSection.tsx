@@ -1,7 +1,7 @@
 'use client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PaginationResponse } from '@/features/auth/authType';
-import { Product } from '@/features/product/productType';
+import { PaginationResponse } from '@/types/authType';
+import { Product } from '@/types/productType';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 

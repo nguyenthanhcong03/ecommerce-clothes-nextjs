@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Star, Stars } from 'lucide-react';
-import { Product, Review } from '@/features/product/productType';
+import { Product, Review } from '@/types/productType';
 import { calculateReviewStatistics } from '@/features/product/utils';
 
 type ReviewStatisticsProps = {

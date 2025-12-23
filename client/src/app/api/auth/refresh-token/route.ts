@@ -1,4 +1,4 @@
-import { authService } from '@/features/auth/authService';
+import { authService } from '@/services/authService';
 import { API_ENDPOINTS } from '@/lib/config';
 import { http } from '@/lib/http';
 import jwt from 'jsonwebtoken';

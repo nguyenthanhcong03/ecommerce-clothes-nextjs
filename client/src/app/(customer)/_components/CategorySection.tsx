@@ -1,6 +1,6 @@
 import Headline from '@/components/common/Headline';
-import { categoryService } from '@/features/category/categoryService';
-import { Category } from '@/features/category/categoryType';
+import { categoryService } from '@/services/categoryService';
+import { Category } from '@/types/categoryType';
 import Image from 'next/image';
 import Link from 'next/link';
 

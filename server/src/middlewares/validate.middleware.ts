@@ -11,7 +11,6 @@ export const validate = (schema: ZodObject) => {
         query: req.query,
         params: req.params
       })
-      console.log('object')
       next()
     } catch (error: any) {
       next(error)

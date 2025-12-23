@@ -1,15 +1,11 @@
 import { http } from '@/lib/http';
-import { LoginInput, RegisterInput, User, ForgotPasswordData, ResetPasswordData } from '@/features/auth/authType';
+import { LoginInput, RegisterInput, User, ForgotPasswordData, ResetPasswordData } from '@/types/authType';
 import { API_ENDPOINTS } from '@/lib/config';
 
 export const authService = {
   login: async (data: LoginInput) => {
     try {
-      const response = await http.post<{
-        user: User;
-        accessToken: string;
-        refreshToken: string;
-      }>('/api/auth/login', data, { baseUrl: '' });
+      const response = await http.post('/api/auth/login', data, { baseUrl: '' });
       return response.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi đăng nhập:', error);

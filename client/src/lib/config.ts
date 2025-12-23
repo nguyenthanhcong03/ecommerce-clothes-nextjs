@@ -37,7 +37,6 @@ export const ROUTE = {
   },
 
   ADMIN: {
-    ROOT: '/admin',
     OVERVIEW: '/admin/overview',
     CATEGORY_MANAGEMENT: '/admin/categories',
     PRODUCT_MANAGEMENT: {

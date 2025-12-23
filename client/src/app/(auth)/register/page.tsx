@@ -4,7 +4,7 @@ import { ButtonCustom } from '@/components/ui/button';
 import { Field, FieldContent, FieldError, FieldLabel } from '@/components/ui/field';
 import { InputCustom } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { useRegisterMutation } from '@/features/auth/useAuth';
+import { useRegisterMutation } from '@/hooks/apis/useAuth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EyeIcon, EyeOffIcon, LockIcon, MailIcon, PhoneIcon, UserIcon } from 'lucide-react';
 import Link from 'next/link';

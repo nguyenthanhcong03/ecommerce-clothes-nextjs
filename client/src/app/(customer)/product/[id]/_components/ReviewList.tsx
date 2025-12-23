@@ -1,6 +1,6 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Review } from '@/features/product/productType';
+import { Review } from '@/types/productType';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { memo, useState } from 'react';

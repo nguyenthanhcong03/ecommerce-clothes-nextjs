@@ -1,7 +1,7 @@
 import CountdownBanner from '@/components/common/CountdownBanner';
-import { categoryService } from '@/features/category/categoryService';
+import { categoryService } from '@/services/categoryService';
 import { findCategoryById } from '@/features/category/utils';
-import { productService } from '@/features/product/productService';
+import { productService } from '@/services/productService';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Suspense } from 'react';

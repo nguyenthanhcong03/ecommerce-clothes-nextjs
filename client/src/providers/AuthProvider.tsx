@@ -1,8 +1,8 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
-import { useAuthStatusQuery } from '@/features/auth/useAuth';
-import { useAuthStore } from '@/features/auth/authStore';
+import { useAuthStatusQuery } from '@/hooks/apis/useAuth';
+import { useAuthStore } from '@/store/authStore';
 
 interface AuthProviderProps {
   children: ReactNode;

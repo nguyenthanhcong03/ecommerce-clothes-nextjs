@@ -10,8 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { useAuthStore } from '@/features/auth/authStore';
-import { useLogoutMutation } from '@/features/auth/useAuth';
+import { useAuthStore } from '@/store/authStore';
+import { useLogoutMutation } from '@/hooks/apis/useAuth';
 import { ROUTE } from '@/lib/config';
 import { CircleUserRound, LogOut, Settings, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
