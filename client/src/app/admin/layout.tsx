@@ -1,6 +1,6 @@
 'use client';
 
-import { ROUTE } from '@/lib/config';
+import { ROUTE } from '@/constants/routes';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 

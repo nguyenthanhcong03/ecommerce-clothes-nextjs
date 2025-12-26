@@ -15,7 +15,7 @@ const Banner = () => {
           alt='Logo'
           height={150}
           width={300}
-          className='h-[150px] transition-transform duration-300 hover:scale-125'
+          className='transition-transform duration-300 hover:scale-125'
         />
         <div className='mx-5 mb-4 text-center leading-6 text-[#333]'>
           Hãy biến những ngày kỷ niệm của bạn trở nên đặc biệt hơn với vẻ đẹp tinh tế.

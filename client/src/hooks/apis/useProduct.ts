@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient, UseQueryOptions } from '@tanstac
 import { toast } from 'sonner';
 import { productService } from '../../services/productService';
 import {
-  CreateProductData,
-  CreateVariantData,
+  CreateProductInput,
+  CreateVariantInput,
   GetProductsParams,
-  UpdateProductData,
-  UpdateVariantData
+  UpdateProductInput,
+  UpdateVariantInput
 } from '../../types/productType';
 
 // ============= PRODUCT QUERIES =============
@@ -16,7 +16,17 @@ import {
  */
 export const useProducts = (params?: GetProductsParams, options?: Omit<UseQueryOptions, 'queryKey' | 'queryFn'>) => {
   return useQuery({
-    queryKey: ['admin-products', params?.page, params?.search, params?.categoryId, params?.brand, params?.featured],
+    queryKey: [
+      'admin-products',
+      params?.page,
+      params?.search,
+      params?.categoryId,
+      params?.status,
+      params?.minPrice,
+      params?.maxPrice,
+      params?.sortBy,
+      params?.sortOrder
+    ],
     queryFn: () => productService.getProducts(params),
     ...options
   });
@@ -43,8 +53,8 @@ export const useCreateProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ data, images }: { data: CreateProductData; images: File[] }) =>
-      productService.createProduct(data, images),
+    mutationFn: ({ data, imageFiles }: { data: CreateProductInput; imageFiles: File[] }) =>
+      productService.createProduct(data, imageFiles),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       toast.success('Tạo sản phẩm thành công');
@@ -62,8 +72,8 @@ export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data, images }: { id: number; data: UpdateProductData; images?: File[] }) =>
-      productService.updateProduct(id, data, images),
+    mutationFn: ({ id, data, imageFiles }: { id: number; data: UpdateProductInput; imageFiles?: File[] }) =>
+      productService.updateProduct(id, data, imageFiles),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       toast.success('Cập nhật sản phẩm thành công');
@@ -92,47 +102,8 @@ export const useDeleteProduct = () => {
   });
 };
 
-/**
- * Hook để xóa vĩnh viễn sản phẩm
- */
-export const useHardDeleteProduct = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: number) => productService.hardDeleteProduct(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-      toast.success('Xóa vĩnh viễn sản phẩm thành công');
-    },
-    onError: (error: Error) => {
-      toast.error(error?.message || 'Có lỗi xảy ra khi xóa vĩnh viễn sản phẩm');
-    }
-  });
-};
-
 // ============= VARIANT QUERIES =============
-
-/**
- * Hook để lấy danh sách variants của một sản phẩm
- */
-export const useVariants = (productId: number | null, params?: { page?: number; limit?: number }) => {
-  return useQuery({
-    queryKey: ['product-variants', productId, params?.page, params?.limit],
-    queryFn: () => (productId ? productService.getVariantsByProductId(productId, params) : null),
-    enabled: !!productId
-  });
-};
-
-/**
- * Hook để lấy chi tiết variant theo ID
- */
-export const useVariant = (productId: number, variantId: number) => {
-  return useQuery({
-    queryKey: ['product-variant', productId, variantId],
-    queryFn: () => productService.getVariantById(productId, variantId),
-    enabled: !!productId && !!variantId
-  });
-};
+// Variants được lấy cùng với product, không cần query riêng
 
 // ============= VARIANT MUTATIONS =============
 
@@ -143,8 +114,8 @@ export const useCreateVariant = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, data, images }: { productId: number; data: CreateVariantData; images?: File[] }) =>
-      productService.createVariant(productId, data, images),
+    mutationFn: ({ productId, data, imageFile }: { productId: number; data: CreateVariantInput; imageFile?: File }) =>
+      productService.createVariant(productId, data, imageFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-variants'] });
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
@@ -167,13 +138,13 @@ export const useUpdateVariant = () => {
       productId,
       variantId,
       data,
-      images
+      imageFile
     }: {
       productId: number;
       variantId: number;
-      data: UpdateVariantData;
-      images?: File[];
-    }) => productService.updateVariant(productId, variantId, data, images),
+      data: UpdateVariantInput;
+      imageFile?: File;
+    }) => productService.updateVariant(productId, variantId, data, imageFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-variants'] });
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
@@ -201,46 +172,6 @@ export const useDeleteVariant = () => {
     },
     onError: (error: Error) => {
       toast.error(error?.message || 'Có lỗi xảy ra khi xóa biến thể');
-    }
-  });
-};
-
-/**
- * Hook để xóa vĩnh viễn variant
- */
-export const useHardDeleteVariant = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ productId, variantId }: { productId: number; variantId: number }) =>
-      productService.hardDeleteVariant(productId, variantId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-variants'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-      toast.success('Xóa vĩnh viễn biến thể thành công');
-    },
-    onError: (error: Error) => {
-      toast.error(error?.message || 'Có lỗi xảy ra khi xóa vĩnh viễn biến thể');
-    }
-  });
-};
-
-/**
- * Hook để cập nhật stock của variant
- */
-export const useUpdateVariantStock = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ productId, variantId, quantity }: { productId: number; variantId: number; quantity: number }) =>
-      productService.updateVariantStock(productId, variantId, quantity),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-variants'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-      toast.success('Cập nhật kho thành công');
-    },
-    onError: (error: Error) => {
-      toast.error(error?.message || 'Có lỗi xảy ra khi cập nhật kho');
     }
   });
 };

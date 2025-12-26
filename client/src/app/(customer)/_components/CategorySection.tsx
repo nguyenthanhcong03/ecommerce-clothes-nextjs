@@ -11,13 +11,7 @@ function CategoryCard({ category }: { category: Category }) {
       className='flex flex-col items-center rounded-lg bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md'
     >
       {category.image && (
-        <Image
-          src={category.image}
-          alt={category.name}
-          width={50}
-          height={50}
-          className='mb-3 h-16 w-16 object-contain'
-        />
+        <Image src={category.image} alt={category.name} width={64} height={64} className='mb-3 object-contain' />
       )}
       <h3 className='text-sm font-medium text-gray-900'>{category.name}</h3>
       {category.productsCount > 0 && (
@@ -28,7 +22,7 @@ function CategoryCard({ category }: { category: Category }) {
 }
 
 export default async function CategorySection() {
-  const categoryResponse = await categoryService.getAllCategories();
+  const categoryResponse = await categoryService.getCategories();
   // if (treeLoading) {
   //   return (
   //     <div className='mt-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6'>

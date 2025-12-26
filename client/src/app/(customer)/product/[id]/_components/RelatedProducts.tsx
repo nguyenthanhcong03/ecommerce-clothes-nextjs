@@ -1,11 +1,6 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { Star, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Product } from '@/types/product';
+import { Product } from '@/types/productType';
 import ProductCard from '../../../../../components/common/ProductCard';
 
 interface RelatedProductsProps {
@@ -31,7 +26,7 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
     <div className='grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4'>
       {products.slice(0, 8).map((product) => {
         return (
-          <div key={product._id} className='group'>
+          <div key={product.id} className='group'>
             <ProductCard item={product} />
           </div>
         );

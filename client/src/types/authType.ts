@@ -3,15 +3,6 @@ export type ValidationError = {
   message: string;
 };
 
-// export type ApiResponse<T> = {
-//   success: boolean; // Trạng thái thành công hay thất bại
-//   message: string; // Thông điệp mô tả kết quả
-//   data: T | null; // Dữ liệu trả về (nếu có)
-//   statusCode: number; // Mã trạng thái HTTP
-//   errors?: ValidationError[]; // Mảng lỗi xác thực (nếu có)
-//   stack?: string; // Ngăn xếp lỗi (chỉ dành cho môi trường phát triển)
-// };
-
 export type ApiResponse<T> = { success: true; message: string; data: T | null };
 
 export type ApiError = {
@@ -33,11 +24,10 @@ export type PaginationResponse<T> = {
 export type User = {
   id: number;
   email: string;
-  name: string;
-  role: 'customer' | 'admin';
+  fullName: string;
+  role: 'CUSTOMER' | 'ADMIN';
   avatar?: string;
-  phone?: string;
-  address?: string;
+  avatarPublicId?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -48,9 +38,8 @@ export type LoginInput = {
 };
 
 export type RegisterInput = {
-  name: string;
+  fullName: string;
   email: string;
-  phone: string;
   password: string;
 };
 

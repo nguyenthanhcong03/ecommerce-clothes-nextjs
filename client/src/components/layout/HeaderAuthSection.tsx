@@ -12,10 +12,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/store/authStore';
 import { useLogoutMutation } from '@/hooks/apis/useAuth';
-import { ROUTE } from '@/lib/config';
 import { CircleUserRound, LogOut, Settings, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { ROUTE } from '@/constants/routes';
 
 export default function HeaderAuthSection() {
   const { user, isAuthenticated } = useAuthStore();
@@ -37,15 +37,17 @@ export default function HeaderAuthSection() {
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
               <Avatar className='h-8 w-8'>
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className='bg-blue-600 text-white'>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarImage src={user.avatar} alt={user.fullName} />
+                <AvatarFallback className='bg-blue-600 text-white'>
+                  {user.fullName.charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className='w-56' align='end' forceMount>
             <DropdownMenuLabel className='font-normal'>
               <div className='flex flex-col space-y-1'>
-                <p className='text-sm leading-none font-medium'>{user.name}</p>
+                <p className='text-sm leading-none font-medium'>{user.fullName}</p>
                 <p className='text-muted-foreground text-xs leading-none'>{user.email}</p>
               </div>
             </DropdownMenuLabel>

@@ -19,9 +19,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <Image
                 src={'/images/outfitory-logo.png'}
                 height={96}
-                width={100}
+                width={180}
                 alt='Logo'
-                className='h-24 w-auto transition-transform duration-300 hover:scale-110'
+                className='transition-transform duration-300 hover:scale-110'
               />
             </Link>
             <span className='text-2xl font-normal'>{isLoginPage ? 'Đăng nhập' : 'Đăng ký'}</span>
@@ -44,7 +44,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                   width={384}
                   height={200}
                   alt='Logo'
-                  className='relative h-auto w-96 skew-x-27 drop-shadow-2xl'
+                  className='relative skew-x-27 drop-shadow-2xl'
                 />
               </div>
               <div className='space-y-6'>

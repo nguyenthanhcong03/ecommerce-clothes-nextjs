@@ -1,26 +1,3 @@
-export const API_ENDPOINTS = {
-  AUTH: {
-    LOGIN: '/api/v1/auth/login',
-    REGISTER: '/api/v1/auth/register',
-    LOGOUT: '/api/v1/auth/logout',
-    ME: '/api/v1/auth/me',
-    REFRESH_TOKEN: '/api/v1/auth/refresh-token'
-  },
-  CATEGORIES: {
-    LIST: '/api/v1/categories',
-    CREATE: '/api/v1/categories',
-    DETAIL: (id: number) => `/api/v1/categories/${id}`,
-    UPDATE: (id: number) => `/api/v1/categories/${id}`,
-    DELETE: (id: number) => `/api/v1/categories/${id}`
-  },
-  PRODUCTS: {
-    LIST: '/api/v1/products',
-    CREATE: '/api/v1/products',
-    UPDATE: (id: number) => `/api/v1/products/${id}`,
-    DELETE: (id: number) => `/api/v1/products/${id}`
-  }
-};
-
 export const ROUTE = {
   HOME: '/',
   LOGIN: '/login',

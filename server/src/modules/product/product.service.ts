@@ -11,8 +11,8 @@ import {
 
 // Lấy danh sách products với phân trang và filter
 export const getProducts = async (query: GetProductsQuery) => {
-  const page = parseInt(query.page)
-  const limit = parseInt(query.limit)
+  const page = parseInt(query.page) || 1
+  const limit = parseInt(query.limit) || 10
   const skip = (page - 1) * limit
 
   const where: any = {}

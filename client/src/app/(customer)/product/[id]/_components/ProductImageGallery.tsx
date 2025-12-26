@@ -77,7 +77,7 @@ export default function ProductImageGallery({ images, productName }: ProductImag
               onClick={() => setCurrentIndex(index)}
             >
               <Image
-                src={image}
+                src={image.url}
                 alt={`${productName} - Thumbnail ${index + 1}`}
                 width={80}
                 height={80}

@@ -6,7 +6,7 @@ import { InputCustom } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useRegisterMutation } from '@/hooks/apis/useAuth';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EyeIcon, EyeOffIcon, LockIcon, MailIcon, PhoneIcon, UserIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, LockIcon, MailIcon, UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -16,9 +16,8 @@ import { z } from 'zod';
 
 export const registerSchema = z
   .object({
-    name: z.string().min(2, 'Tên phải có ít nhất 2 ký tự').max(100),
+    fullName: z.string().min(2, 'Tên phải có ít nhất 2 ký tự').max(100),
     email: z.string().email('Email không hợp lệ'),
-    phone: z.string().regex(/^(\+\d{1,3}[- ]?)?\d{10}$/, 'Số điện thoại không hợp lệ'),
     password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
     confirmPassword: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự')
   })
@@ -41,9 +40,8 @@ export default function RegisterPage() {
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
+      fullName: '',
       email: '',
-      phone: '',
       password: '',
       confirmPassword: ''
     }
@@ -71,9 +69,9 @@ export default function RegisterPage() {
         {/* NAME */}
         <Controller
           control={control}
-          name='name'
+          name='fullName'
           render={({ field }) => (
-            <Field data-invalid={!!errors.name}>
+            <Field data-invalid={!!errors.fullName}>
               <FieldLabel htmlFor='name'>
                 <UserIcon className='h-4 w-4 text-gray-500' />
                 Họ và tên
@@ -83,9 +81,9 @@ export default function RegisterPage() {
                   {...field}
                   id='name'
                   placeholder='Nhập tên'
-                  className={errors.name ? 'border-destructive' : ''}
+                  className={errors.fullName ? 'border-destructive' : ''}
                 />
-                <FieldError>{errors.name?.message}</FieldError>
+                <FieldError>{errors.fullName?.message}</FieldError>
               </FieldContent>
             </Field>
           )}
@@ -108,29 +106,6 @@ export default function RegisterPage() {
                   className={errors.email ? 'border-destructive' : ''}
                 />
                 <FieldError>{errors.email?.message}</FieldError>
-              </FieldContent>
-            </Field>
-          )}
-        />
-
-        {/* PHONE */}
-        <Controller
-          control={control}
-          name='phone'
-          render={({ field }) => (
-            <Field data-invalid={!!errors.phone}>
-              <FieldLabel htmlFor='phone'>
-                <PhoneIcon className='h-4 w-4 text-gray-500' />
-                Số điện thoại
-              </FieldLabel>
-              <FieldContent>
-                <InputCustom
-                  {...field}
-                  id='phone'
-                  placeholder='Nhập số điện thoại'
-                  className={errors.phone ? 'border-destructive' : ''}
-                />
-                <FieldError>{errors.phone?.message}</FieldError>
               </FieldContent>
             </Field>
           )}

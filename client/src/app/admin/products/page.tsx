@@ -4,19 +4,19 @@ import { useState } from 'react';
 import { ProductTable } from '@/app/admin/products/_components/ProductTable';
 import { ProductFormDialog } from '@/app/admin/products/_components/ProductFormDialog';
 import { VariantManagementDialog } from '@/app/admin/products/_components/VariantManagementDialog';
-import { ProductAdmin } from '@/types/productType';
+import { Product } from '@/types/productType';
 
 export default function ProductPage() {
   const [productFormOpen, setProductFormOpen] = useState(false);
   const [variantDialogOpen, setVariantDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductAdmin | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const handleEditProduct = (product: ProductAdmin) => {
+  const handleEditProduct = (product: Product) => {
     setSelectedProduct(product);
     setProductFormOpen(true);
   };
 
-  const handleViewVariants = (product: ProductAdmin) => {
+  const handleViewVariants = (product: Product) => {
     setSelectedProduct(product);
     setVariantDialogOpen(true);
   };

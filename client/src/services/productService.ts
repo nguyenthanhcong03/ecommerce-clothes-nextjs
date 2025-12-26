@@ -1,288 +1,146 @@
 import { http } from '@/lib/http';
-import { PaginationResponse } from '../types/authType';
 import {
-  CreateProductData,
-  CreateVariantData,
-  GetProductsParams,
   Product,
-  ProductAdmin,
-  ProductVariant,
-  Review,
-  UpdateProductData,
-  UpdateVariantData
-} from '../types/productType';
-import { API_ENDPOINTS } from '@/lib/config';
+  CreateProductInput,
+  UpdateProductInput,
+  CreateVariantInput,
+  UpdateVariantInput,
+  GetProductsParams,
+  ProductVariant
+} from '@/types/productType';
+import { PaginationResponse } from '@/types/authType';
 
 export const productService = {
-  getAllProducts: async (query: string = '') => {
-    try {
-      const res = await http.get<PaginationResponse<Product>>(
-        `${API_ENDPOINTS.PRODUCTS.LIST}${query && `?${query?.toString()}`}`
-      );
-      return res.data;
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi tải danh sách sản phẩm:', error);
-    }
-  },
+  // ============= PRODUCT OPERATIONS =============
 
-  getFeaturedProducts: async () => {
-    try {
-      const res = await http.get<Product[]>(`api/v1/product/featured`);
-      return res.data;
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi tải sản phẩm nổi bật:', error);
-    }
-  },
-
-  getProductById: async (id: number) => {
-    try {
-      const res = await http.get<Product>(`api/v1/product/${id}`);
-      return res.data;
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi tải chi tiết sản phẩm:', error);
-    }
-  },
-
-  getRelatedProducts: async (productId: number) => {
-    try {
-      const res = await http.get<Product[]>(`api/v1/product/${productId}/related`);
-      return res.data;
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi tải sản phẩm liên quan:', error);
-    }
-  },
-
-  getProductReviews: async (productId: number) => {
-    try {
-      const res = await http.get<PaginationResponse<Review>>(`api/v1/reviews/product/${productId}`);
-      return res.data;
-    } catch (error) {
-      console.error('Có lỗi xảy ra khi tải đánh giá sản phẩm:', error);
-    }
-  },
+  // Lấy danh sách products
   getProducts: async (params?: GetProductsParams) => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            queryParams.append(key, String(value));
-          }
-        });
-      }
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.categoryId) queryParams.append('categoryId', params.categoryId.toString());
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.minPrice) queryParams.append('minPrice', params.minPrice.toString());
+    if (params?.maxPrice) queryParams.append('maxPrice', params.maxPrice.toString());
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
-      const res = await http.get<PaginationResponse<ProductAdmin>>(
-        `${API_ENDPOINTS.PRODUCTS.LIST}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-      );
-      return res.data;
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    }
-  },
-  // Create new product
-  createProduct: async (data: CreateProductData, images: File[]) => {
-    try {
-      const formData = new FormData();
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/products?${queryString}` : '/api/products';
 
-      // Append product data
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === 'tags' && Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
-        }
-      });
-
-      // Append images
-      images.forEach((image) => {
-        formData.append('images', image);
-      });
-
-      const res = await http.post<{ data: ProductAdmin }>(API_ENDPOINTS.PRODUCTS.CREATE, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      return res.data;
-    } catch (error) {
-      console.error('Lỗi khi tạo mới sản phẩm:', error);
-    }
+    const response = await http.get<PaginationResponse<Product>>(endpoint);
+    return response.data;
   },
 
-  // Update product
-  updateProduct: async (id: number, data: UpdateProductData, images?: File[]) => {
-    try {
-      const formData = new FormData();
-
-      // Append product data
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === 'tags' && Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
-        }
-      });
-
-      // Thêm images nếu có
-      if (images && images.length > 0) {
-        images.forEach((image) => {
-          formData.append('images', image);
-        });
-      }
-
-      const res = await http.put<{ data: ProductAdmin }>(API_ENDPOINTS.PRODUCTS.UPDATE(id), formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      return res.data;
-    } catch (error) {
-      console.error('Lỗi khi cập nhật sản phẩm:', error);
-    }
+  // Lấy product theo ID
+  getProductById: async (id: number) => {
+    const response = await http.get<{ data: Product }>(`/api/products/${id}`);
+    return response.data;
   },
 
-  // Soft delete product
+  // Lấy product theo slug
+  getProductBySlug: async (slug: string) => {
+    const response = await http.get<{ data: Product }>(`/api/products/slug/${slug}`);
+    return response.data;
+  },
+
+  // Tạo product mới (Admin)
+  createProduct: async (data: CreateProductInput, imageFiles: File[]) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('slug', data.slug);
+    if (data.description) formData.append('description', data.description);
+    if (data.basePrice) formData.append('basePrice', data.basePrice.toString());
+    if (data.status) formData.append('status', data.status);
+    formData.append('categoryId', data.categoryId.toString());
+    formData.append('variants', JSON.stringify(data.variants));
+
+    // Thêm các ảnh
+    imageFiles.forEach((file) => {
+      formData.append('images', file);
+    });
+
+    const response = await http.post<{ data: Product }>('/api/products', formData);
+    return response.data;
+  },
+
+  // Cập nhật product (Admin)
+  updateProduct: async (id: number, data: UpdateProductInput, imageFiles?: File[]) => {
+    const formData = new FormData();
+    if (data.name) formData.append('name', data.name);
+    if (data.slug) formData.append('slug', data.slug);
+    if (data.description !== undefined) formData.append('description', data.description || '');
+    if (data.basePrice !== undefined) {
+      formData.append('basePrice', data.basePrice === null ? '' : data.basePrice.toString());
+    }
+    if (data.status) formData.append('status', data.status);
+    if (data.categoryId) formData.append('categoryId', data.categoryId.toString());
+
+    // Thêm các ảnh mới nếu có
+    if (imageFiles && imageFiles.length > 0) {
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+    }
+
+    const response = await http.put<{ data: Product }>(`/api/products/${id}`, formData);
+    return response.data;
+  },
+
+  // Xóa product (Admin)
   deleteProduct: async (id: number) => {
-    try {
-      const res = await http.delete<{ message: string }>(API_ENDPOINTS.PRODUCTS.DELETE(id));
-      return res.data;
-    } catch (error) {
-      console.error('Error deleting product:', error);
-    }
+    const response = await http.delete(`/api/products/${id}`);
+    return response.data;
   },
 
-  // Hard delete product
-  hardDeleteProduct: async (id: number) => {
-    try {
-      const res = await http.delete<{ message: string }>(`${API_ENDPOINTS.PRODUCTS.DELETE(id)}/hard`);
-      return res.data;
-    } catch (error) {
-      console.error('Error hard deleting product:', error);
+  // ============= VARIANT OPERATIONS =============
+
+  // Tạo variant mới cho product (Admin)
+  createVariant: async (productId: number, data: CreateVariantInput, imageFile?: File) => {
+    const formData = new FormData();
+    formData.append('sku', data.sku);
+    formData.append('price', data.price.toString());
+    formData.append('stock', data.stock.toString());
+    if (data.image) formData.append('image', data.image);
+    formData.append('attributes', JSON.stringify(data.attributes));
+
+    if (imageFile) {
+      formData.append('image', imageFile);
     }
+
+    const response = await http.post<{ data: ProductVariant }>(`/api/products/${productId}/variants`, formData, {
+      baseUrl: ''
+    });
+    return response.data;
   },
 
-  // Variant Management
-  getVariantsByProductId: async (productId: number, params?: { page?: number; limit?: number }) => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
-            queryParams.append(key, String(value));
-          }
-        });
+  // Cập nhật variant (Admin)
+  updateVariant: async (productId: number, variantId: number, data: UpdateVariantInput, imageFile?: File) => {
+    const formData = new FormData();
+    if (data.sku) formData.append('sku', data.sku);
+    if (data.price !== undefined) formData.append('price', data.price.toString());
+    if (data.stock !== undefined) formData.append('stock', data.stock.toString());
+    if (data.image) formData.append('image', data.image);
+    if (data.attributes) formData.append('attributes', JSON.stringify(data.attributes));
+
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
+    const response = await http.put<{ data: ProductVariant }>(
+      `/api/products/${productId}/variants/${variantId}`,
+      formData,
+      {
+        baseUrl: ''
       }
-
-      const res = await http.get<PaginationResponse<ProductVariant>>(
-        `/api/v1/products/${productId}/variants${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-      );
-      return res.data;
-    } catch (error) {
-      console.error('Error fetching variants:', error);
-    }
+    );
+    return response.data;
   },
 
-  getVariantById: async (productId: number, variantId: number) => {
-    try {
-      const res = await http.get<{ data: ProductVariant }>(`/api/v1/products/${productId}/variants/${variantId}`);
-      return res.data;
-    } catch (error) {
-      console.error('Error fetching variant:', error);
-    }
-  },
-
-  createVariant: async (productId: number, data: CreateVariantData, images?: File[]) => {
-    try {
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === 'attributes' && Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
-        }
-      });
-
-      if (images && images.length > 0) {
-        images.forEach((image) => {
-          formData.append('images', image);
-        });
-      }
-      console.log('data :>> ', data);
-      console.log(Object.fromEntries(formData.entries()));
-
-      const res = await http.post<{ data: ProductVariant }>(`/api/v1/products/${productId}/variants`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      return res.data;
-    } catch (error) {
-      console.error('Error creating variant:', error);
-    }
-  },
-
-  updateVariant: async (productId: number, variantId: number, data: UpdateVariantData, images?: File[]) => {
-    try {
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === 'attributes' && Array.isArray(value)) {
-          formData.append(key, JSON.stringify(value));
-        } else if (value !== undefined && value !== null) {
-          formData.append(key, String(value));
-        }
-      });
-
-      if (images && images.length > 0) {
-        images.forEach((image) => {
-          formData.append('images', image);
-        });
-      }
-
-      const res = await http.put<{ data: ProductVariant }>(
-        `/api/v1/products/${productId}/variants/${variantId}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      );
-      return res.data;
-    } catch (error) {
-      console.error('Error updating variant:', error);
-    }
-  },
-
+  // Xóa variant (Admin)
   deleteVariant: async (productId: number, variantId: number) => {
-    try {
-      const res = await http.delete<{ message: string }>(`/api/v1/products/${productId}/variants/${variantId}`);
-      return res.data;
-    } catch (error) {
-      console.error('Error deleting variant:', error);
-    }
-  },
-
-  hardDeleteVariant: async (productId: number, variantId: number) => {
-    try {
-      const res = await http.delete<{ message: string }>(`/api/v1/products/${productId}/variants/${variantId}/hard`);
-      return res.data;
-    } catch (error) {
-      console.error('Error hard deleting variant:', error);
-    }
-  },
-
-  updateVariantStock: async (productId: number, variantId: number, quantity: number) => {
-    // try {
-    //   const res = await http.patch<{ data: ProductVariant }>(
-    //     `/api/v1/products/${productId}/variants/${variantId}/stock`,
-    //     { quantity }
-    //   );
-    //   return res.data.data;
-    // } catch (error) {
-    //   console.error('Error updating variant stock:', error);
-    //
-    // }
+    const response = await http.delete(`/api/products/${productId}/variants/${variantId}`);
+    return response.data;
   }
 };

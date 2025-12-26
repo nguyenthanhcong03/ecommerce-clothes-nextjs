@@ -1,6 +1,6 @@
 import { ApiError, ApiResponse } from '@/types/authType';
-import { API_ENDPOINTS } from './config';
 import { normalizePath } from './utils';
+import { API_ENDPOINTS } from '@/constants/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -21,9 +21,9 @@ class Http {
         credentials: 'include' // Gửi kèm cookie
       });
 
-      // if (!response.ok) {
-      //   throw new Error('Không thể refresh token');
-      // }
+      if (!response.ok) {
+        throw new Error('Không thể refresh token');
+      }
 
       // Nếu refresh thành công, cookie mới đã được set tự động
       return true;
@@ -135,6 +135,7 @@ class Http {
 
       return this.handleResponse<T>(response);
     } catch (error) {
+      console.error('error :>> ', error);
       throw error;
     }
   }

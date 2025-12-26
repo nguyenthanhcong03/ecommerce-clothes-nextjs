@@ -1,11 +1,10 @@
-import { User } from '@/types/authType';
-import { API_ENDPOINTS } from '@/lib/config';
+import { API_ENDPOINTS } from '@/constants/api';
 import { http } from '@/lib/http';
-import jwt from 'jsonwebtoken';
+import { User } from '@/types/authType';
 import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
 
 export async function POST(request: Request) {
-  console.log('----------');
   const body = await request.json();
   const cookieStore = await cookies();
   try {

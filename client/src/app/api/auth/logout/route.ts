@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from '@/lib/config';
+import { API_ENDPOINTS } from '@/constants/api';
 import { http } from '@/lib/http';
 import { cookies } from 'next/headers';
 

@@ -1,8 +1,8 @@
 import { authService } from '@/services/authService';
-import { API_ENDPOINTS } from '@/lib/config';
 import { http } from '@/lib/http';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { API_ENDPOINTS } from '@/constants/api';
 
 export async function POST() {
   const cookieStore = await cookies();

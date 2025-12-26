@@ -3,7 +3,7 @@ import ProductCard from '@/components/common/ProductCard';
 import { productService } from '@/services/productService';
 
 const FeaturedProducts = async () => {
-  const featuredProducts = await productService.getAllProducts();
+  const featuredProducts = await productService.getProducts();
   return (
     <section>
       <Headline text1='Sản phẩm nổi bật' text2='Được yêu thích nhất' />
