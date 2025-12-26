@@ -6,7 +6,6 @@ export const createProductSchema = z.object({
     name: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
     slug: z.string().min(1, 'Slug là bắt buộc'),
     description: z.string().optional(),
-    material: z.string().optional(),
     brand: z.string().optional(),
     categoryIds: z.preprocess((val) => {
       if (typeof val === 'string') {

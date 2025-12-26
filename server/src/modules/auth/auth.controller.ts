@@ -122,8 +122,6 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
 
 export const logout = async (req: Request, res: Response) => {
   const { accessToken, refreshToken } = req.cookies
-  console.log('accessToken :>> ', accessToken)
-  console.log('refreshToken :>> ', refreshToken)
 
   // Xoá cookie
   res.clearCookie('accessToken', {
@@ -142,6 +140,7 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
   if (!refreshToken) throw new AppError(401, 'Không tìm thấy refresh token')
   // Verify refresh token
   const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET as string) as { id: number; role: string }
+  console.log('decođed :>> ', decoded)
 
   // Tìm user
   const user = await prisma.user.findUnique({ where: { id: decoded.id } })

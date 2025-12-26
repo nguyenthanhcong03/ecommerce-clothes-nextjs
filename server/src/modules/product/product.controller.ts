@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import * as productService from './product.service'
 import { CreateProductInput, UpdateProductInput, GetProductsQuery } from './product.schema'
 import { responseHandler } from '@/utils/responseHandler'
+import { AppError } from '@/utils/error'
 
 // GET /api/products - Lấy danh sách products
 export const getProducts = async (req: Request, res: Response) => {
@@ -29,11 +30,12 @@ export const getProductBySlug = async (req: Request, res: Response) => {
 
 // POST /api/products - Tạo product mới
 export const createProduct = async (req: Request, res: Response) => {
+  console.log('req.body :>> ', req.body)
   const data: CreateProductInput = req.body
   const files = req.files as Express.Multer.File[]
 
   if (!files || files.length === 0) {
-    return res.status(400).json({ message: 'At least one image is required' })
+    throw new AppError(400, 'Ít nhất một hình ảnh là bắt buộc')
   }
 
   const product = await productService.createProduct(data, files)

@@ -10,23 +10,20 @@ datasource db {
 
 // Bảng User - Người dùng
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique @db.VarChar(255)
-  password      String    @db.VarChar(255)
-  name          String    @db.VarChar(255)
-  phone         String?   @unique @db.VarChar(20)
-  dateOfBirth   DateTime?
-  role          UserRole  @default(CUSTOMER)
-  isActive      Boolean   @default(true)
-  isDeleted     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  addresses     Address[]
-  orders        Order[]
-  reviews       Review[]
-  cart          Cart?
-  avatar        Media?    @relation("AvatarImage" ) 
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  fullName  String
+  avatar    String?  // URL avatar
+  avatarPublicId String? // 👈 cloudinary public_id
+
+  role      UserRole @default(CUSTOMER)
+
+  cart      Cart?
+  orders    Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum UserRole {
@@ -34,233 +31,238 @@ enum UserRole {
   ADMIN
 }
 
-// Bảng Address - Địa chỉ giao hàng
-model Address {
-  id            Int       @id @default(autoincrement())
-  userId        Int
-  fullName      String    @db.VarChar(255)
-  phone         String    @db.VarChar(20)
-  address       String    @db.Text
-  ward          String    @db.VarChar(100)
-  district      String    @db.VarChar(100)
-  province      String    @db.VarChar(100)
-  isDefault     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders        Order[]
-}
-
-// Bảng Category - Danh mục sản phẩm
+ 
 model Category {
-  id            Int                @id @default(autoincrement())
-  name          String             @db.VarChar(255)
-  slug          String             @unique @db.VarChar(255)
-  description   String?            @db.Text
-  isActive      Boolean            @default(true)
-  isDeleted     Boolean            @default(false)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  
-  productCategories ProductCategory[]
-  image        Media? @relation("CategoryImage") 
+  id       Int     @id @default(autoincrement())
+  name     String
+  slug     String  @unique
+    image    String? // ảnh đại diện category
+    imagePublicId String? // 👈 cloudinary public_id
+    
+  parentId Int?
+
+  parent   Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryParent")
+
+  products Product[]
 }
 
-// Bảng Product - Sản phẩm
+
 model Product {
-  id            Int                @id @default(autoincrement())
-  name          String             @db.VarChar(255)
-  slug          String             @unique @db.VarChar(255)
-  description   String?            @db.Text
-  material      String?            @db.VarChar(255)
-  brand         String?            @db.VarChar(255)
-  isActive      Boolean            @default(true)
-  isDeleted     Boolean            @default(false)
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  
-  variants      ProductVariant[]
-  productCategories ProductCategory[]
-  reviews       Review[]
-  images         Media[] @relation("ProductImages")
+  id          Int           @id @default(autoincrement())
+  name        String
+  slug        String        @unique
+  description String?       @db.Text
+  basePrice   Int?
+  status      ProductStatus @default(ACTIVE)
+
+  categoryId  Int
+  category    Category      @relation(fields: [categoryId], references: [id])
+
+  variants    ProductVariant[]
+  images      ProductImage[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
 }
 
-// Bảng trung gian Product - Category (Many-to-Many)
-model ProductCategory {
-  productId     Int
-  categoryId    Int
-  createdAt     DateTime  @default(now())
-  
-  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  @@id([productId, categoryId])
-}
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+} 
 
-// Bảng ProductVariant - Biến thể sản phẩm
 model ProductVariant {
-  id            Int       @id @default(autoincrement())
-  productId     Int
-  sku           String    @unique @db.VarChar(100)
-  name          String    @db.VarChar(255)    // Tên biến thể: "Đỏ - M", "Xanh - L", "38", "Vàng kim"
-  price         Decimal   @db.Decimal(10, 2)
-  comparePrice  Decimal?  @db.Decimal(10, 2)
-  stock         Int       @default(0)
-  isActive      Boolean   @default(true)
-  isDeleted     Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  attributes    VariantAttribute[]
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  images         Media[] @relation("VariantImages")
+  id        Int      @id @default(autoincrement())
+  productId Int
+  sku       String   @unique
+  price     Int
+  stock     Int
+  image     String?
+
+  product    Product                   @relation(fields: [productId], references: [id])
+  attributes VariantAttributeValue[]
+  images     ProductImage[]
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+model Attribute {
+  id     Int    @id @default(autoincrement())
+  code   String @unique
+  name   String
+
+  values AttributeValue[]
 }
 
-// Bảng VariantAttribute - Thuộc tính động của biến thể
-model VariantAttribute {
-  id            Int       @id @default(autoincrement())
-  variantId     Int
-  name          String    @db.VarChar(100)    // Tên thuộc tính: "Màu sắc", "Kích thước", "Chất liệu", "Kiểu dáng"
-  value         String    @db.VarChar(255)    // Giá trị: "Đỏ", "M", "Cotton", "Slim fit"
-  createdAt     DateTime  @default(now())
-  
-  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  
-  @@unique([variantId, name])
+model AttributeValue {
+  id          Int    @id @default(autoincrement())
+  attributeId Int
+  value       String
+
+  attribute Attribute @relation(fields: [attributeId], references: [id])
+  variants  VariantAttributeValue[]
+
+  @@unique([attributeId, value])
 }
 
-// Bảng Cart - Giỏ hàng
+
+model VariantAttributeValue {
+  variantId        Int
+  attributeValueId Int
+
+  variant        ProductVariant @relation(fields: [variantId], references: [id])
+  attributeValue AttributeValue @relation(fields: [attributeValueId], references: [id])
+
+  @@id([variantId, attributeValueId])
+}
+
+model ProductImage {
+  id        Int  @id @default(autoincrement())
+  productId Int
+  variantId Int?
+
+  url       String
+   publicId  String   // cloudinary public_id
+  isMain    Boolean @default(false)
+
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([productId])
+  @@index([variantId])
+}
+
+
+
+
+ 
+ 
 model Cart {
-  id            Int       @id @default(autoincrement())
-  userId        Int       @unique
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items         CartItem[]
+  id     Int @id @default(autoincrement())
+  userId Int @unique
+
+  user  User       @relation(fields: [userId], references: [id])
+  items CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Bảng CartItem - Sản phẩm trong giỏ hàng
 model CartItem {
-  id            Int       @id @default(autoincrement())
-  cartId        Int
-  variantId     Int
-  quantity      Int       @default(1)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  cart          Cart      @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  variant       ProductVariant @relation(fields: [variantId], references: [id])
-  
+  id        Int @id @default(autoincrement())
+  cartId    Int
+  variantId Int
+  quantity  Int
+
+  cart    Cart           @relation(fields: [cartId], references: [id])
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
   @@unique([cartId, variantId])
+  @@index([cartId])
+  @@index([variantId])
 }
 
-// Bảng Order - Đơn hàng
+
 model Order {
-  id            Int       @id @default(autoincrement())
-  orderNumber   String    @unique @db.VarChar(100)
-  userId        Int
-  addressId     Int
-  status        OrderStatus @default(PENDING)
-  subtotal      Decimal   @db.Decimal(10, 2)
-  shippingFee   Decimal   @db.Decimal(10, 2) @default(0)
-  discount      Decimal   @db.Decimal(10, 2) @default(0)
-  total         Decimal   @db.Decimal(10, 2)
-  paymentMethod PaymentMethod
-  paymentStatus PaymentStatus @default(UNPAID)
-  note          String?   @db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  user          User      @relation(fields: [userId], references: [id])
-  address       Address   @relation(fields: [addressId], references: [id])
-  items         OrderItem[]
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  status      OrderStatus @default(PENDING)
+
+   paymentMethod PaymentMethod
+  totalAmount Int
+
+   shippingName  String
+  shippingPhone String
+  shippingAddress String
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+  payment Payment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum PaymentMethod {
+  COD        // Thanh toán khi nhận hàng
+  ONLINE     // Thanh toán online (VNPay, Momo, Stripe...)
+}
+
+model Payment {
+  id        Int @id @default(autoincrement())
+  orderId   Int @unique
+
+  method    PaymentMethod
+  status    PaymentStatus
+  amount    Int
+
+  provider  PaymentProvider? // VNPay, Momo, Stripe
+  transactionId String?      // mã giao dịch từ cổng thanh toán
+  paidAt    DateTime?
+
+  order     Order @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING   // chờ thanh toán
+  PAID      // đã thanh toán
+  FAILED    // thất bại
+  REFUNDED  // hoàn tiền
+}
+
+enum PaymentProvider {
+  VNPAY
+  MOMO
+  STRIPE
+}
+
+
+
+model OrderItem {
+  id        Int @id @default(autoincrement())
+  orderId   Int
+  variantId Int
+
+  price    Int
+  quantity Int
+
+  order   Order          @relation(fields: [orderId], references: [id])
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+  @@index([variantId])
 }
 
 enum OrderStatus {
   PENDING
-  CONFIRMED
-  PROCESSING
+  PAID
   SHIPPING
-  DELIVERED
+  COMPLETED
   CANCELLED
 }
 
-enum PaymentMethod {
-  COD
-  BANK_TRANSFER
-  MOMO
-  VNPAY
-}
+// Create Order
+// → paymentMethod = COD
+// → Order.status = PENDING
+// → Payment.status = PENDING
+// → Shipper giao hàng
+// → Admin xác nhận → Order = COMPLETED
 
-enum PaymentStatus {
-  UNPAID
-  PAID
-  REFUNDED
-}
-
-// Bảng OrderItem - Sản phẩm trong đơn hàng
-model OrderItem {
-  id            Int       @id @default(autoincrement())
-  orderId       Int
-  variantId     Int
-  quantity      Int
-  price         Decimal   @db.Decimal(10, 2)
-  createdAt     DateTime  @default(now())
-  
-  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variant       ProductVariant @relation(fields: [variantId], references: [id])
-}
-
-// Bảng Review - Đánh giá sản phẩm
-model Review {
-  id            Int       @id @default(autoincrement())
-  productId     Int
-  userId        Int
-  rating        Int
-  comment       String?   @db.Text
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user          User      @relation(fields: [userId], references: [id])
-  images         Media[]   @relation("ReviewImages")
-  
-  @@unique([productId, userId])
-}
-
-// Bảng Media - Quản lý ảnh từ Cloudinary
-model Media {
-  id            String    @id @default(uuid()) @db.Char(36)
-  url           String    @db.VarChar(500)    // secure_url từ Cloudinary
-  publicId      String    @db.VarChar(255)    // cloudinary public_id để xóa ảnh
-  width         Int?
-  height        Int?
-  format        String?   @db.VarChar(20)   // jpg, png, webp, etc.
-  resourceType  String    @default("image") @db.VarChar(20) // image, video, raw
-  
-  // Quan hệ với các model khác
-  productId     Int?
-  variantId     Int?
-  userId        Int?    @unique
-  reviewId      Int?
-  categoryId    Int?    @unique
-  
-  createdAt     DateTime  @default(now())
-  
-  product       Product?  @relation("ProductImages",fields: [productId], references: [id], onDelete: Cascade)
-  variant       ProductVariant? @relation("VariantImages",fields: [variantId], references: [id], onDelete: Cascade)
-  review        Review?   @relation("ReviewImages",fields: [reviewId], references: [id], onDelete: Cascade)
-  user          User?     @relation("AvatarImage", fields: [userId], references: [id], onDelete: Cascade)
-  category      Category? @relation("CategoryImage", fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  @@index([productId])
-  @@index([variantId])
-  @@index([userId])
-  @@index([reviewId])
-  @@index([categoryId])
-}
+// Create Order (status = PENDING)
+// → Create Payment (status = PENDING)
+// → Redirect cổng thanh toán
+// → Webhook / callback
+// → Payment.status = PAID
+// → Order.status = PAID

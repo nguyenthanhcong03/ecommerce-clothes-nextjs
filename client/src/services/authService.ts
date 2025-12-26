@@ -9,7 +9,6 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi đăng nhập:', error);
-      throw error;
     }
   },
 
@@ -29,7 +28,6 @@ export const authService = {
       await http.post('/api/auth/logout', null, { baseUrl: '' });
     } catch (error) {
       console.error('Có lỗi xảy ra khi đăng xuất:', error);
-      throw error;
     }
   },
 
@@ -39,7 +37,6 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi lấy thông tin tài khoản:', error);
-      throw error;
     }
   },
 
@@ -49,7 +46,6 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi cập nhật thông tin tài khoản:', error);
-      throw error;
     }
   },
 
@@ -67,7 +63,6 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi làm mới token:', error);
-      throw error;
     }
   },
 
@@ -77,7 +72,6 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi kiểm tra trạng thái xác thực:', error);
-      throw error;
     }
   }
 };

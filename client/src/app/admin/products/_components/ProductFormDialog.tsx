@@ -1,17 +1,17 @@
 'use client';
 
+import { MultiSelect } from '@/components/common/MultiSelect';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input, InputCustom } from '@/components/ui/input';
+import { InputCustom } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { TextareaCustom } from '@/components/ui/textarea';
 import { useCategoriesQuery } from '@/hooks/apis/useCategory';
 import { useCreateProduct, useUpdateProduct } from '@/hooks/apis/useProduct';
 import { CreateProductData, ProductAdmin, UpdateProductData } from '@/types/productType';
 import { Upload, X } from 'lucide-react';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -24,39 +24,52 @@ interface ProductFormDialogProps {
 export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDialogProps) {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const isEditing = !!product;
 
   const { data: categoriesData } = useCategoriesQuery();
   const createProductMutation = useCreateProduct();
   const updateProductMutation = useUpdateProduct();
-
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    setValue,
-    watch
+    setValue
   } = useForm<CreateProductData>({
     defaultValues: {
       name: '',
+      slug: '',
       description: '',
-      categoryId: 0,
+      categoryIds: [],
       brand: '',
       tags: [],
-      featured: false
+      isActive: true
     }
   });
+
+  // Transform categories for MultiSelect component
+  const categoryOptions = useMemo(() => {
+    return (
+      categoriesData?.data?.map((category) => ({
+        label: category.name,
+        value: category.id.toString()
+      })) || []
+    );
+  }, [categoriesData]);
 
   // Load product data when editing
   useEffect(() => {
     if (product) {
       setValue('name', product.name);
       setValue('description', product.description);
-      setValue('categoryId', product.categoryId);
+      setValue('categoryIds', product.categoryIds);
       setValue('brand', product.brand);
       setValue('tags', product.tags || []);
-      setValue('featured', product.featured);
+      setValue('isActive', product.isActive ?? true);
+
+      // Set selected categories
+      // setSelectedCategoryIds(product.categoryIds.map((id) => id.toString()));
 
       // Set existing images as previews
       if (product.images && product.images.length > 0) {
@@ -66,6 +79,7 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
       reset();
       setImageFiles([]);
       setImagePreviews([]);
+      setSelectedCategoryIds([]);
     }
   }, [product, setValue, reset]);
 
@@ -75,11 +89,20 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
       return;
     }
 
+    if (selectedCategoryIds.length === 0) {
+      toast.error('Vui lòng chọn ít nhất một danh mục');
+      return;
+    }
+
+    // Convert selected category IDs to numbers
+    const categoryIds = selectedCategoryIds.map((id) => parseInt(id, 10));
+    const formData = { ...data, categoryIds };
+
     if (isEditing && product) {
       updateProductMutation.mutate(
         {
           id: product.id,
-          data: data as UpdateProductData,
+          data: formData as UpdateProductData,
           images: imageFiles.length > 0 ? imageFiles : undefined
         },
         {
@@ -88,18 +111,20 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
             reset();
             setImageFiles([]);
             setImagePreviews([]);
+            setSelectedCategoryIds([]);
           }
         }
       );
     } else {
       createProductMutation.mutate(
-        { data, images: imageFiles },
+        { data: formData, images: imageFiles },
         {
           onSuccess: () => {
             onOpenChange(false);
             reset();
             setImageFiles([]);
             setImagePreviews([]);
+            setSelectedCategoryIds([]);
           }
         }
       );
@@ -157,12 +182,25 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
             {errors.name && <p className='text-sm text-red-500'>{errors.name.message}</p>}
           </div>
 
+          {/* Slug */}
+          <div className='space-y-2'>
+            <Label htmlFor='slug'>
+              Đường dẫn sản phẩm <span className='text-red-500'>*</span>
+            </Label>
+            <InputCustom
+              id='slug'
+              {...register('slug', { required: 'Đường dẫn sản phẩm là bắt buộc' })}
+              placeholder='Nhập đường dẫn sản phẩm'
+            />
+            {errors.slug && <p className='text-sm text-red-500'>{errors.slug.message}</p>}
+          </div>
+
           {/* Description */}
           <div className='space-y-2'>
             <Label htmlFor='description'>
               Mô tả <span className='text-red-500'>*</span>
             </Label>
-            <Textarea
+            <TextareaCustom
               id='description'
               {...register('description', { required: 'Mô tả là bắt buộc' })}
               placeholder='Nhập mô tả sản phẩm'
@@ -177,29 +215,22 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
               <Label htmlFor='categoryId'>
                 Danh mục <span className='text-red-500'>*</span>
               </Label>
-              <Select
-                value={watch('categoryId')?.toString()}
-                onValueChange={(value) => setValue('categoryId', parseInt(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='Chọn danh mục' />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoriesData?.data?.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.categoryId && <p className='text-sm text-red-500'>{errors.categoryId.message}</p>}
+              <MultiSelect
+                options={categoryOptions}
+                value={selectedCategoryIds}
+                onChange={setSelectedCategoryIds}
+                placeholder='Chọn danh mục'
+              />
+              {selectedCategoryIds.length === 0 && errors.categoryIds && (
+                <p className='text-sm text-red-500'>Vui lòng chọn ít nhất một danh mục</p>
+              )}
             </div>
 
             <div className='space-y-2'>
               <Label htmlFor='brand'>
                 Thương hiệu <span className='text-red-500'>*</span>
               </Label>
-              <Input
+              <InputCustom
                 id='brand'
                 {...register('brand', { required: 'Thương hiệu là bắt buộc' })}
                 placeholder='Nhập thương hiệu'
@@ -211,7 +242,7 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
           {/* Tags */}
           <div className='space-y-2'>
             <Label htmlFor='tags'>Tags (phân tách bằng dấu phẩy)</Label>
-            <Input
+            <InputCustom
               id='tags'
               defaultValue={product?.tags?.join(', ')}
               onChange={handleTagsChange}
@@ -221,8 +252,8 @@ export function ProductFormDialog({ open, onOpenChange, product }: ProductFormDi
 
           {/* Featured */}
           <div className='flex items-center gap-2'>
-            <input type='checkbox' id='featured' {...register('featured')} className='h-4 w-4' />
-            <Label htmlFor='featured'>Sản phẩm nổi bật</Label>
+            <input type='checkbox' id='featured' {...register('isActive')} className='h-4 w-4' />
+            <Label htmlFor='featured'>Trạng thái sản phẩm</Label>
           </div>
 
           {/* Images */}

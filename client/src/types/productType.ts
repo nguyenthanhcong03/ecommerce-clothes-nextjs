@@ -95,7 +95,7 @@ export interface ProductAdmin {
   name: string;
   slug: string;
   description: string;
-  categoryId: number;
+  categoryIds: number[];
   category?: {
     id: number;
     name: string;
@@ -106,7 +106,7 @@ export interface ProductAdmin {
   tags: string[];
   averageRating: number;
   totalReviews: number;
-  featured: boolean;
+  isActive: boolean;
   salesCount: number;
   deletedAt?: string | null;
   createdAt: string;
@@ -115,11 +115,12 @@ export interface ProductAdmin {
 
 export interface CreateProductData {
   name: string;
+  slug: string;
   description: string;
-  categoryId: number;
+  categoryIds: number[];
   brand: string;
   tags?: string[];
-  featured?: boolean;
+  isActive?: boolean;
 }
 
 export interface UpdateProductData {

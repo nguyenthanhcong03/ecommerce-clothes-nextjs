@@ -22,7 +22,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi tải danh sách sản phẩm:', error);
-      throw error;
     }
   },
 
@@ -78,7 +77,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error fetching products:', error);
-      throw error;
     }
   },
   // Create new product
@@ -108,7 +106,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Lỗi khi tạo mới sản phẩm:', error);
-      throw error;
     }
   },
 
@@ -141,7 +138,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Lỗi khi cập nhật sản phẩm:', error);
-      throw error;
     }
   },
 
@@ -152,7 +148,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error deleting product:', error);
-      throw error;
     }
   },
 
@@ -163,7 +158,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error hard deleting product:', error);
-      throw error;
     }
   },
 
@@ -185,7 +179,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error fetching variants:', error);
-      throw error;
     }
   },
 
@@ -195,7 +188,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error fetching variant:', error);
-      throw error;
     }
   },
 
@@ -216,6 +208,8 @@ export const productService = {
           formData.append('images', image);
         });
       }
+      console.log('data :>> ', data);
+      console.log(Object.fromEntries(formData.entries()));
 
       const res = await http.post<{ data: ProductVariant }>(`/api/v1/products/${productId}/variants`, formData, {
         headers: {
@@ -225,7 +219,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error creating variant:', error);
-      throw error;
     }
   },
 
@@ -259,7 +252,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error updating variant:', error);
-      throw error;
     }
   },
 
@@ -269,7 +261,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error deleting variant:', error);
-      throw error;
     }
   },
 
@@ -279,7 +270,6 @@ export const productService = {
       return res.data;
     } catch (error) {
       console.error('Error hard deleting variant:', error);
-      throw error;
     }
   },
 
@@ -292,7 +282,7 @@ export const productService = {
     //   return res.data.data;
     // } catch (error) {
     //   console.error('Error updating variant stock:', error);
-    //   throw error;
+    //
     // }
   }
 };

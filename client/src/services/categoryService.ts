@@ -10,7 +10,6 @@ export const categoryService = {
       return res.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi lấy danh sách danh mục:', error);
-      throw error;
     }
   },
   getCategories: async () => {
@@ -19,7 +18,6 @@ export const categoryService = {
       return res.data;
     } catch (error) {
       console.error('Có lỗi xảy ra khi lấy danh sách danh mục:', error);
-      throw error;
     }
   },
   getCategoryById: async (id: string) => {

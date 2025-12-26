@@ -221,7 +221,6 @@ export const createProduct = async (data: CreateProductInput, files: Express.Mul
       name: data.name,
       slug: data.slug,
       description: data.description,
-      material: data.material,
       brand: data.brand,
       isActive: data.isActive ?? true,
       images: {

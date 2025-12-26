@@ -1,8 +1,8 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button, ButtonCustom } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Input, InputCustom } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCreateVariant, useUpdateVariant } from '@/hooks/apis/useProduct';
 import {
@@ -156,7 +156,7 @@ export function VariantFormDialog({ open, onOpenChange, product, variant }: Vari
               <Label htmlFor='sku'>
                 SKU <span className='text-red-500'>*</span>
               </Label>
-              <Input
+              <InputCustom
                 id='sku'
                 {...register('sku', { required: 'SKU là bắt buộc' })}
                 placeholder='Ví dụ: PROD-001-RED-M'
@@ -168,10 +168,10 @@ export function VariantFormDialog({ open, onOpenChange, product, variant }: Vari
               <Label htmlFor='name'>
                 Tên biến thể <span className='text-red-500'>*</span>
               </Label>
-              <Input
+              <InputCustom
                 id='name'
                 {...register('name', { required: 'Tên biến thể là bắt buộc' })}
-                placeholder='Ví dụ: Đỏ - M, Xanh - L'
+                placeholder='Ví dụ: Chất liệu, Màu sắc, Kích thước...'
               />
               {errors.name && <p className='text-sm text-red-500'>{errors.name.message}</p>}
             </div>
@@ -181,23 +181,23 @@ export function VariantFormDialog({ open, onOpenChange, product, variant }: Vari
           <div className='space-y-2'>
             <div className='flex items-center justify-between'>
               <Label>Thuộc tính biến thể</Label>
-              <Button type='button' variant='outline' size='sm' onClick={addAttribute}>
+              <ButtonCustom type='button' variant='outline' size='sm' onClick={addAttribute}>
                 <Plus className='mr-2 h-4 w-4' />
                 Thêm thuộc tính
-              </Button>
+              </ButtonCustom>
             </div>
 
             {attributes.length > 0 && (
               <div className='space-y-2'>
                 {attributes.map((attr, index) => (
                   <div key={index} className='flex gap-2'>
-                    <Input
+                    <InputCustom
                       placeholder='Tên (Ví dụ: Màu sắc, Kích thước, Chất liệu)'
                       value={attr.name}
                       onChange={(e) => updateAttribute(index, 'name', e.target.value)}
                       className='flex-1'
                     />
-                    <Input
+                    <InputCustom
                       placeholder='Giá trị (Ví dụ: Đỏ, M, Cotton)'
                       value={attr.value}
                       onChange={(e) => updateAttribute(index, 'value', e.target.value)}
@@ -231,7 +231,7 @@ export function VariantFormDialog({ open, onOpenChange, product, variant }: Vari
               <Label htmlFor='price'>
                 Giá bán <span className='text-red-500'>*</span>
               </Label>
-              <Input
+              <InputCustom
                 id='price'
                 type='number'
                 {...register('price', {
@@ -245,7 +245,7 @@ export function VariantFormDialog({ open, onOpenChange, product, variant }: Vari
 
             <div className='space-y-2'>
               <Label htmlFor='comparePrice'>Giá so sánh (giá gốc)</Label>
-              <Input
+              <InputCustom
                 id='comparePrice'
                 type='number'
                 {...register('comparePrice')}
@@ -259,7 +259,7 @@ export function VariantFormDialog({ open, onOpenChange, product, variant }: Vari
             <Label htmlFor='stock'>
               Số lượng tồn kho <span className='text-red-500'>*</span>
             </Label>
-            <Input
+            <InputCustom
               id='stock'
               type='number'
               {...register('stock', {
@@ -308,21 +308,21 @@ export function VariantFormDialog({ open, onOpenChange, product, variant }: Vari
           </div>
 
           <DialogFooter>
-            <Button
+            <ButtonCustom
               type='button'
               variant='outline'
               onClick={() => onOpenChange(false)}
               disabled={createVariantMutation.isPending || updateVariantMutation.isPending}
             >
               Hủy
-            </Button>
-            <Button type='submit' disabled={createVariantMutation.isPending || updateVariantMutation.isPending}>
+            </ButtonCustom>
+            <ButtonCustom type='submit' disabled={createVariantMutation.isPending || updateVariantMutation.isPending}>
               {createVariantMutation.isPending || updateVariantMutation.isPending
                 ? 'Đang xử lý...'
                 : isEditing
                   ? 'Cập nhật'
                   : 'Tạo mới'}
-            </Button>
+            </ButtonCustom>
           </DialogFooter>
         </form>
       </DialogContent>

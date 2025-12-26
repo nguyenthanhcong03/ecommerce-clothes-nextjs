@@ -7,12 +7,12 @@ import Link from 'next/link';
 function CategoryCard({ category }: { category: Category }) {
   return (
     <Link
-      href={`/shop/${category._id}`}
+      href={`/shop/${category.id}`}
       className='flex flex-col items-center rounded-lg bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md'
     >
-      {category.images[0] && (
+      {category.image && (
         <Image
-          src={category.images[0]}
+          src={category.image}
           alt={category.name}
           width={50}
           height={50}
@@ -51,7 +51,7 @@ export default async function CategorySection() {
 
       <div className='mt-6 flex justify-center gap-4 rounded-md'>
         {categoryResponse?.data &&
-          categoryResponse.data.map((category) => <CategoryCard key={category._id} category={category} />)}
+          categoryResponse.data.map((category) => <CategoryCard key={category.id} category={category} />)}
       </div>
     </section>
   );

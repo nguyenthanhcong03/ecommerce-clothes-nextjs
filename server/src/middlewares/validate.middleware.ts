@@ -5,12 +5,16 @@ import { ValidationError } from '@/utils/error'
 // Validate middleware with Zod
 export const validate = (schema: ZodObject) => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    console.log('req.body :>> ', req.body)
     try {
-      await schema.parseAsync({
+      const parsed = await schema.parseAsync({
         body: req.body,
         query: req.query,
         params: req.params
       })
+      // gắn lại dữ liệu đã validate
+      req.body = parsed.body
+
       next()
     } catch (error: any) {
       next(error)

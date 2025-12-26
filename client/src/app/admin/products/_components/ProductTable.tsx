@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button, ButtonCustom } from '@/components/ui/button';
+import { Input, InputCustom } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   DropdownMenu,
@@ -65,7 +65,7 @@ export function ProductTable({ onEdit, onViewVariants, onCreateProduct }: Produc
         <div className='flex max-w-md flex-1 items-center gap-2'>
           <div className='relative flex-1'>
             <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400' />
-            <Input
+            <InputCustom
               placeholder='Tìm kiếm sản phẩm...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -73,14 +73,14 @@ export function ProductTable({ onEdit, onViewVariants, onCreateProduct }: Produc
             />
           </div>
         </div>
-        <Button onClick={onCreateProduct}>
+        <ButtonCustom onClick={onCreateProduct}>
           <Plus className='mr-2 h-4 w-4' />
           Thêm sản phẩm
-        </Button>
+        </ButtonCustom>
       </div>
 
       {/* Table */}
-      <div className='rounded-lg border'>
+      <div className='rounded-xs border'>
         <Table>
           <TableHeader>
             <TableRow>

@@ -88,6 +88,7 @@ export const getVariantById = async (productId: number, variantId: number) => {
 
 // Tạo variant mới
 export const createVariant = async (productId: number, data: CreateVariantInput, files?: Express.Multer.File[]) => {
+  console.log('data :>> ', data)
   // Kiểm tra product tồn tại
   const product = await prisma.product.findFirst({
     where: { id: productId, isDeleted: false }

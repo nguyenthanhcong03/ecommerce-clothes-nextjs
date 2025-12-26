@@ -21,9 +21,9 @@ class Http {
         credentials: 'include' // Gửi kèm cookie
       });
 
-      if (!response.ok) {
-        throw new Error('Không thể refresh token');
-      }
+      // if (!response.ok) {
+      //   throw new Error('Không thể refresh token');
+      // }
 
       // Nếu refresh thành công, cookie mới đã được set tự động
       return true;
