@@ -1,5 +1,26 @@
 import { ProductStatus } from 'generated/prisma/enums'
 import { z } from 'zod'
+import { ProductStatus } from '@prisma/client'
+
+// Schema cho variant khi tạo/cập nhật product
+const variantSchema = z.object({
+  sku: z.string().min(1, 'SKU là bắt buộc'),
+  price: z.preprocess(
+    (val) => (typeof val === 'string' ? parseInt(val) : val),
+    z.number().int().positive('Giá phải lớn hơn 0')
+  ),
+  stock: z.preprocess(
+    (val) => (typeof val === 'string' ? parseInt(val) : val),
+    z.number().int().min(0, 'Số lượng không được âm')
+  ),
+  image: z.string().optional(),
+  attributes: z.array(
+    z.object({
+      attributeId: z.number().int().positive(),
+      valueId: z.number().int().positive()
+    })
+  )
+})
 
 // Schema cho variant khi tạo/cập nhật product
 const variantSchema = z.object({
