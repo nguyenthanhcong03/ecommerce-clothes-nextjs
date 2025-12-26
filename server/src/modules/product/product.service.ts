@@ -1,46 +1,60 @@
-import { deleteMultiple, uploadMultiple } from '@/utils/cloudinary'
-import { AppError } from '@/utils/error'
-import { CreateProductInput, UpdateProductInput, GetProductsQuery } from './product.schema'
 import { prisma } from '@/lib/prisma'
+import { AppError } from '@/utils/error'
+import { uploadImage, deleteImage } from '@/utils/cloudinary'
+import {
+  CreateProductInput,
+  UpdateProductInput,
+  GetProductsQuery,
+  CreateVariantInput,
+  UpdateVariantInput
+} from './product.schema'
 
-// Lấy tất cả products với phân trang, tìm kiếm và filter
+// Lấy danh sách products với phân trang và filter
 export const getProducts = async (query: GetProductsQuery) => {
-  const page = parseInt(query.page || '1')
-  const limit = parseInt(query.limit || '10')
+  const page = parseInt(query.page)
+  const limit = parseInt(query.limit)
   const skip = (page - 1) * limit
 
-  const where: any = {
-    isDeleted: false
-  }
+  const where: any = {}
 
+  // Search
   if (query.search) {
     where.OR = [
       { name: { contains: query.search, mode: 'insensitive' } },
       { slug: { contains: query.search, mode: 'insensitive' } },
-      { brand: { contains: query.search, mode: 'insensitive' } }
+      { description: { contains: query.search, mode: 'insensitive' } }
     ]
   }
 
-  if (query.isActive !== undefined) {
-    where.isActive = query.isActive === 'true'
-  }
-
+  // Filter by category
   if (query.categoryId) {
-    where.productCategories = {
-      some: {
-        categoryId: parseInt(query.categoryId)
-      }
-    }
+    where.categoryId = parseInt(query.categoryId)
   }
 
-  // Filter theo giá (dựa trên giá thấp nhất của variants)
+  // Filter by status
+  if (query.status) {
+    where.status = query.status
+  }
+
+  // Filter by price range (basePrice or variant price)
   if (query.minPrice || query.maxPrice) {
     where.variants = {
       some: {
-        ...(query.minPrice && { price: { gte: parseFloat(query.minPrice) } }),
-        ...(query.maxPrice && { price: { lte: parseFloat(query.maxPrice) } })
+        price: {
+          ...(query.minPrice && { gte: parseInt(query.minPrice) }),
+          ...(query.maxPrice && { lte: parseInt(query.maxPrice) })
+        }
       }
     }
+  }
+
+  // Sorting
+  let orderBy: any = {}
+  if (query.sortBy === 'price') {
+    // Sort by lowest variant price
+    orderBy = { variants: { _min: { price: query.sortOrder } } }
+  } else {
+    orderBy = { [query.sortBy]: query.sortOrder }
   }
 
   const [products, total] = await Promise.all([
@@ -49,36 +63,40 @@ export const getProducts = async (query: GetProductsQuery) => {
       skip,
       take: limit,
       include: {
-        images: {
-          take: 1,
-          orderBy: { createdAt: 'asc' }
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
         },
         variants: {
           take: 1,
           orderBy: { price: 'asc' },
           include: {
-            attributes: true
-          }
-        },
-        productCategories: {
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true
+            attributes: {
+              include: {
+                attributeValue: {
+                  include: {
+                    attribute: true
+                  }
+                }
               }
             }
           }
         },
+        images: {
+          where: { isMain: true },
+          take: 1
+        },
         _count: {
           select: {
             variants: true,
-            reviews: true
+            images: true
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy
     }),
     prisma.product.count({ where })
   ])
@@ -96,41 +114,25 @@ export const getProducts = async (query: GetProductsQuery) => {
 
 // Lấy product theo ID
 export const getProductById = async (id: number) => {
-  const product = await prisma.product.findFirst({
-    where: { id, isDeleted: false },
+  const product = await prisma.product.findUnique({
+    where: { id },
     include: {
-      images: true,
+      category: true,
       variants: {
         include: {
-          attributes: true,
-          images: true
-        }
-      },
-      productCategories: {
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true
-            }
-          }
-        }
-      },
-      reviews: {
-        where: { isActive: true },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true
+          attributes: {
+            include: {
+              attributeValue: {
+                include: {
+                  attribute: true
+                }
+              }
             }
           },
           images: true
-        },
-        orderBy: { createdAt: 'desc' }
-      }
+        }
+      },
+      images: true
     }
   })
 
@@ -143,42 +145,25 @@ export const getProductById = async (id: number) => {
 
 // Lấy product theo slug
 export const getProductBySlug = async (slug: string) => {
-  const product = await prisma.product.findFirst({
-    where: { slug, isDeleted: false, isActive: true },
+  const product = await prisma.product.findUnique({
+    where: { slug },
     include: {
-      images: true,
+      category: true,
       variants: {
-        where: { isActive: true, isDeleted: false },
         include: {
-          attributes: true,
-          images: true
-        }
-      },
-      productCategories: {
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true
-            }
-          }
-        }
-      },
-      reviews: {
-        where: { isActive: true },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true
+          attributes: {
+            include: {
+              attributeValue: {
+                include: {
+                  attribute: true
+                }
+              }
             }
           },
           images: true
-        },
-        orderBy: { createdAt: 'desc' }
-      }
+        }
+      },
+      images: true
     }
   })
 
@@ -192,60 +177,92 @@ export const getProductBySlug = async (slug: string) => {
 // Tạo product mới
 export const createProduct = async (data: CreateProductInput, files: Express.Multer.File[]) => {
   // Kiểm tra slug đã tồn tại
-  const existingProduct = await prisma.product.findFirst({
-    where: { slug: data.slug, isDeleted: false }
+  const existingProduct = await prisma.product.findUnique({
+    where: { slug: data.slug }
   })
 
   if (existingProduct) {
-    throw new AppError(400, 'Slug đã được sử dụng cho sản phẩm khác')
+    throw new AppError(400, 'Slug đã được sử dụng')
   }
 
-  // Kiểm tra categories tồn tại
-  const categories = await prisma.category.findMany({
-    where: {
-      id: { in: data.categoryIds },
-      isDeleted: false
-    }
+  // Kiểm tra category tồn tại
+  const category = await prisma.category.findUnique({
+    where: { id: data.categoryId }
   })
 
-  if (categories.length !== data.categoryIds.length) {
-    throw new AppError(400, 'Danh mục không hợp lệ')
+  if (!category) {
+    throw new AppError(400, 'Category không tồn tại')
   }
 
-  // Upload ảnh lên Cloudinary
-  const uploadResults = (await uploadMultiple(files, 'products')) as any[]
+  // Kiểm tra SKU trùng lặp
+  const skus = data.variants.map((v) => v.sku)
+  if (new Set(skus).size !== skus.length) {
+    throw new AppError(400, 'SKU bị trùng lặp trong các variant')
+  }
 
-  // Tạo product với images và categories
+  // Kiểm tra SKU đã tồn tại trong database
+  const existingVariants = await prisma.productVariant.findMany({
+    where: { sku: { in: skus } }
+  })
+
+  if (existingVariants.length > 0) {
+    throw new AppError(400, `SKU ${existingVariants.map((v) => v.sku).join(', ')} đã tồn tại`)
+  }
+
+  // Upload images nếu có
+  const uploadedImages: Array<{ url: string; publicId: string; isMain: boolean }> = []
+  if (files && files.length > 0) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const uploadResult = (await uploadImage(file.buffer, 'products')) as any
+      uploadedImages.push({
+        url: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+        isMain: i === 0 // Ảnh đầu tiên là ảnh chính
+      })
+    }
+  }
+
+  // Tạo product với variants
   const product = await prisma.product.create({
     data: {
       name: data.name,
       slug: data.slug,
       description: data.description,
-      brand: data.brand,
-      isActive: data.isActive ?? true,
-      images: {
-        create: uploadResults.map((result) => ({
-          url: result.secure_url,
-          publicId: result.public_id,
-          width: result.width,
-          height: result.height,
-          format: result.format,
-          resourceType: 'image'
+      basePrice: data.basePrice,
+      status: data.status,
+      categoryId: data.categoryId,
+      variants: {
+        create: data.variants.map((variant) => ({
+          sku: variant.sku,
+          price: variant.price,
+          stock: variant.stock,
+          image: variant.image,
+          attributes: {
+            create: variant.attributes.map((attr) => ({
+              attributeValueId: attr.valueId
+            }))
+          }
         }))
       },
-      productCategories: {
-        create: data.categoryIds.map((categoryId) => ({
-          categoryId
-        }))
-      }
+      images: uploadedImages.length > 0 ? { create: uploadedImages } : undefined
     },
     include: {
-      images: true,
-      productCategories: {
+      category: true,
+      variants: {
         include: {
-          category: true
+          attributes: {
+            include: {
+              attributeValue: {
+                include: {
+                  attribute: true
+                }
+              }
+            }
+          }
         }
-      }
+      },
+      images: true
     }
   })
 
@@ -255,9 +272,8 @@ export const createProduct = async (data: CreateProductInput, files: Express.Mul
 // Cập nhật product
 export const updateProduct = async (id: number, data: UpdateProductInput, files?: Express.Multer.File[]) => {
   // Kiểm tra product tồn tại
-  const product = await prisma.product.findFirst({
-    where: { id, isDeleted: false },
-    include: { images: true }
+  const product = await prisma.product.findUnique({
+    where: { id }
   })
 
   if (!product) {
@@ -266,135 +282,299 @@ export const updateProduct = async (id: number, data: UpdateProductInput, files?
 
   // Kiểm tra slug trùng (nếu có thay đổi)
   if (data.slug && data.slug !== product.slug) {
-    const existingProduct = await prisma.product.findFirst({
-      where: { slug: data.slug, isDeleted: false, NOT: { id } }
+    const existingProduct = await prisma.product.findUnique({
+      where: { slug: data.slug }
     })
 
-    if (existingProduct) {
-      throw new AppError(400, 'Slug đã được sử dụng cho sản phẩm khác')
+    if (existingProduct && existingProduct.id !== id) {
+      throw new AppError(400, 'Slug đã được sử dụng')
     }
   }
 
-  // Kiểm tra categories tồn tại (nếu có update)
-  if (data.categoryIds) {
-    const categories = await prisma.category.findMany({
-      where: {
-        id: { in: data.categoryIds },
-        isDeleted: false
-      }
+  // Kiểm tra category tồn tại (nếu có thay đổi)
+  if (data.categoryId) {
+    const category = await prisma.category.findUnique({
+      where: { id: data.categoryId }
     })
 
-    if (categories.length !== data.categoryIds.length) {
-      throw new AppError(400, 'Danh mục không hợp lệ')
+    if (!category) {
+      throw new AppError(400, 'Category không tồn tại')
     }
   }
 
-  // Xử lý upload ảnh mới nếu có
-  let imageUpdate = {}
+  // Upload images mới nếu có
   if (files && files.length > 0) {
-    const uploadResults = (await uploadMultiple(files, 'products')) as any[]
+    // Lấy ảnh cũ để xóa
+    const oldImages = await prisma.productImage.findMany({
+      where: { productId: id }
+    })
 
     // Xóa ảnh cũ trên Cloudinary
-    if (product.images.length > 0) {
-      await deleteMultiple(product.images.map((img) => img.publicId))
+    for (const image of oldImages) {
+      await deleteImage(image.publicId)
     }
 
-    imageUpdate = {
-      images: {
-        deleteMany: {},
-        create: uploadResults.map((result) => ({
-          url: result.secure_url,
-          publicId: result.public_id,
-          width: result.width,
-          height: result.height,
-          format: result.format,
-          resourceType: 'image'
-        }))
-      }
+    // Xóa ảnh cũ trong database
+    await prisma.productImage.deleteMany({
+      where: { productId: id }
+    })
+
+    // Upload ảnh mới
+    const uploadedImages: Array<{ url: string; publicId: string; isMain: boolean }> = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const uploadResult = (await uploadImage(file.buffer, 'products')) as any
+      uploadedImages.push({
+        url: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+        isMain: i === 0
+      })
     }
+
+    // Tạo ảnh mới
+    await prisma.productImage.createMany({
+      data: uploadedImages.map((img) => ({
+        productId: id,
+        url: img.url,
+        publicId: img.publicId,
+        isMain: img.isMain
+      }))
+    })
   }
 
-  // Xử lý cập nhật categories nếu có
-  let categoryUpdate = {}
-  if (data.categoryIds) {
-    categoryUpdate = {
-      productCategories: {
-        deleteMany: {},
-        create: data.categoryIds.map((categoryId) => ({
-          categoryId
-        }))
-      }
-    }
-  }
-
+  // Cập nhật product
   const updatedProduct = await prisma.product.update({
     where: { id },
     data: {
       ...(data.name && { name: data.name }),
       ...(data.slug && { slug: data.slug }),
       ...(data.description !== undefined && { description: data.description }),
-      ...(data.material !== undefined && { material: data.material }),
-      ...(data.brand !== undefined && { brand: data.brand }),
-      ...(data.isActive !== undefined && { isActive: data.isActive }),
-      ...imageUpdate,
-      ...categoryUpdate
+      ...(data.basePrice !== undefined && { basePrice: data.basePrice }),
+      ...(data.status && { status: data.status }),
+      ...(data.categoryId && { categoryId: data.categoryId })
     },
     include: {
-      images: true,
-      productCategories: {
-        include: {
-          category: true
-        }
-      },
+      category: true,
       variants: {
         include: {
-          attributes: true,
-          images: true
+          attributes: {
+            include: {
+              attributeValue: {
+                include: {
+                  attribute: true
+                }
+              }
+            }
+          }
         }
-      }
+      },
+      images: true
     }
   })
 
   return updatedProduct
 }
 
-// Xóa mềm product
+// Xóa product
 export const deleteProduct = async (id: number) => {
-  const product = await prisma.product.findFirst({
-    where: { id, isDeleted: false }
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      images: true,
+      variants: {
+        include: {
+          images: true
+        }
+      }
+    }
   })
 
   if (!product) {
     throw new AppError(404, 'Sản phẩm không tồn tại')
   }
 
-  await prisma.product.update({
-    where: { id },
-    data: { isDeleted: true }
+  // Xóa tất cả ảnh trên Cloudinary
+  const allImages = [...product.images, ...product.variants.flatMap((v) => v.images)]
+  for (const image of allImages) {
+    await deleteImage(image.publicId)
+  }
+
+  // Xóa product (cascade sẽ tự động xóa variants, images, attributes)
+  await prisma.product.delete({
+    where: { id }
   })
 
   return { message: 'Xóa sản phẩm thành công' }
 }
 
-// Xóa vĩnh viễn product
-export const hardDeleteProduct = async (id: number) => {
+// ============= VARIANT OPERATIONS =============
+
+// Tạo variant mới cho product
+export const createVariant = async (productId: number, data: CreateVariantInput, file?: Express.Multer.File) => {
+  // Kiểm tra product tồn tại
   const product = await prisma.product.findUnique({
-    where: { id },
-    include: { images: true }
+    where: { id: productId }
   })
 
   if (!product) {
     throw new AppError(404, 'Sản phẩm không tồn tại')
   }
 
-  // Xóa ảnh trên Cloudinary
-  if (product.images.length > 0) {
-    await deleteMultiple(product.images.map((img) => img.publicId))
-  }
-
-  await prisma.product.delete({
-    where: { id }
+  // Kiểm tra SKU đã tồn tại
+  const existingVariant = await prisma.productVariant.findUnique({
+    where: { sku: data.sku }
   })
 
-  return { message: 'Xóa sản phầm vĩnh viễn thành công' }
+  if (existingVariant) {
+    throw new AppError(400, 'SKU đã tồn tại')
+  }
+
+  // Upload ảnh nếu có
+  let imageUrl = data.image
+  if (file) {
+    const uploadResult = (await uploadImage(file.buffer, 'variants')) as any
+    imageUrl = uploadResult.secure_url
+  }
+
+  // Tạo variant
+  const variant = await prisma.productVariant.create({
+    data: {
+      productId,
+      sku: data.sku,
+      price: data.price,
+      stock: data.stock,
+      image: imageUrl,
+      attributes: {
+        create: data.attributes.map((attr) => ({
+          attributeValueId: attr.valueId
+        }))
+      }
+    },
+    include: {
+      attributes: {
+        include: {
+          attributeValue: {
+            include: {
+              attribute: true
+            }
+          }
+        }
+      },
+      images: true
+    }
+  })
+
+  return variant
+}
+
+// Cập nhật variant
+export const updateVariant = async (
+  productId: number,
+  variantId: number,
+  data: UpdateVariantInput,
+  file?: Express.Multer.File
+) => {
+  // Kiểm tra variant tồn tại và thuộc về product
+  const variant = await prisma.productVariant.findUnique({
+    where: { id: variantId }
+  })
+
+  if (!variant || variant.productId !== productId) {
+    throw new AppError(404, 'Variant không tồn tại')
+  }
+
+  // Kiểm tra SKU trùng (nếu có thay đổi)
+  if (data.sku && data.sku !== variant.sku) {
+    const existingVariant = await prisma.productVariant.findUnique({
+      where: { sku: data.sku }
+    })
+
+    if (existingVariant && existingVariant.id !== variantId) {
+      throw new AppError(400, 'SKU đã tồn tại')
+    }
+  }
+
+  // Upload ảnh mới nếu có
+  let imageUrl = data.image
+  if (file) {
+    const uploadResult = (await uploadImage(file.buffer, 'variants')) as any
+    imageUrl = uploadResult.secure_url
+  }
+
+  // Cập nhật attributes nếu có
+  if (data.attributes) {
+    // Xóa attributes cũ
+    await prisma.variantAttributeValue.deleteMany({
+      where: { variantId }
+    })
+
+    // Tạo attributes mới
+    await prisma.variantAttributeValue.createMany({
+      data: data.attributes.map((attr) => ({
+        variantId,
+        attributeValueId: attr.valueId
+      }))
+    })
+  }
+
+  // Cập nhật variant
+  const updatedVariant = await prisma.productVariant.update({
+    where: { id: variantId },
+    data: {
+      ...(data.sku && { sku: data.sku }),
+      ...(data.price !== undefined && { price: data.price }),
+      ...(data.stock !== undefined && { stock: data.stock }),
+      ...(imageUrl && { image: imageUrl })
+    },
+    include: {
+      attributes: {
+        include: {
+          attributeValue: {
+            include: {
+              attribute: true
+            }
+          }
+        }
+      },
+      images: true
+    }
+  })
+
+  return updatedVariant
+}
+
+// Xóa variant
+export const deleteVariant = async (productId: number, variantId: number) => {
+  // Kiểm tra variant tồn tại và thuộc về product
+  const variant = await prisma.productVariant.findUnique({
+    where: { id: variantId },
+    include: {
+      images: true
+    }
+  })
+
+  if (!variant || variant.productId !== productId) {
+    throw new AppError(404, 'Variant không tồn tại')
+  }
+
+  // Kiểm tra xem product còn variant nào khác không
+  const variantCount = await prisma.productVariant.count({
+    where: { productId }
+  })
+
+  if (variantCount <= 1) {
+    throw new AppError(400, 'Không thể xóa variant cuối cùng của sản phẩm')
+  }
+
+  // Xóa ảnh của variant trên Cloudinary
+  for (const image of variant.images) {
+    await deleteImage(image.publicId)
+  }
+
+  // Xóa variant (cascade sẽ tự động xóa attributes và images)
+  await prisma.productVariant.delete({
+    where: { id: variantId }
+  })
+
+  return { message: 'Xóa variant thành công' }
 }

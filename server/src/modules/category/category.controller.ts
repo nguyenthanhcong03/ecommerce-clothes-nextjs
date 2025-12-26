@@ -52,18 +52,10 @@ export const updateCategory = async (req: Request, res: Response) => {
   responseHandler(res, 200, 'Category updated successfully', { data: category })
 }
 
-// DELETE /api/categories/:id - Xóa mềm category
+// DELETE /api/categories/:id - Xóa category
 export const deleteCategory = async (req: Request, res: Response) => {
   const id = parseInt(req.params.id)
   const result = await categoryService.deleteCategory(id)
-
-  responseHandler(res, 200, result.message)
-}
-
-// DELETE /api/categories/:id/hard - Xóa vĩnh viễn category
-export const hardDeleteCategory = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id)
-  const result = await categoryService.hardDeleteCategory(id)
 
   responseHandler(res, 200, result.message)
 }

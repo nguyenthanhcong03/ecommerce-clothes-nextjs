@@ -15,8 +15,7 @@ import {
   getCategoryBySlug,
   createCategory,
   updateCategory,
-  deleteCategory,
-  hardDeleteCategory
+  deleteCategory
 } from './category.controller'
 
 const router = Router()
@@ -34,7 +33,5 @@ router.post('/', upload.single('image'), validate(createCategorySchema), asyncHa
 router.put('/:id', upload.single('image'), validate(updateCategorySchema), asyncHandler(updateCategory))
 
 router.delete('/:id', validate(deleteCategorySchema), asyncHandler(deleteCategory))
-
-router.delete('/:id/hard', validate(deleteCategorySchema), asyncHandler(hardDeleteCategory))
 
 export default router

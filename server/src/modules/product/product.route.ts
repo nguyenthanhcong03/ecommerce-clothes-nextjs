@@ -1,13 +1,17 @@
 import { Router } from 'express'
-import { validate } from '../../middlewares/validate.middleware'
-import { asyncHandler } from '../../middlewares/error.middleware'
-import upload from '../../middlewares/upload.middleware'
+import { validate } from '@/middlewares/validate.middleware'
+import { asyncHandler } from '@/middlewares/error.middleware'
+import upload from '@/middlewares/upload.middleware'
 import {
   createProductSchema,
   updateProductSchema,
   getProductSchema,
+  getProductBySlugSchema,
   deleteProductSchema,
-  getProductsSchema
+  getProductsSchema,
+  createVariantSchema,
+  updateVariantSchema,
+  deleteVariantSchema
 } from './product.schema'
 import {
   getProducts,
@@ -16,16 +20,19 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  hardDeleteProduct
+  createVariant,
+  updateVariant,
+  deleteVariant
 } from './product.controller'
-import variantRoutes from './variant.route'
 
 const router = Router()
+
+// ============= PRODUCT ROUTES =============
 
 // Public routes
 router.get('/', validate(getProductsSchema), asyncHandler(getProducts))
 
-router.get('/slug/:slug', asyncHandler(getProductBySlug))
+router.get('/slug/:slug', validate(getProductBySlugSchema), asyncHandler(getProductBySlug))
 
 router.get('/:id', validate(getProductSchema), asyncHandler(getProductById))
 
@@ -36,9 +43,18 @@ router.put('/:id', upload.array('images', 10), validate(updateProductSchema), as
 
 router.delete('/:id', validate(deleteProductSchema), asyncHandler(deleteProduct))
 
-router.delete('/:id/hard', validate(deleteProductSchema), asyncHandler(hardDeleteProduct))
+// ============= VARIANT ROUTES =============
 
-// Variant routes - mount với productId param
-router.use('/:productId/variants', variantRoutes)
+// Admin routes
+router.post('/:productId/variants', upload.single('image'), validate(createVariantSchema), asyncHandler(createVariant))
+
+router.put(
+  '/:productId/variants/:variantId',
+  upload.single('image'),
+  validate(updateVariantSchema),
+  asyncHandler(updateVariant)
+)
+
+router.delete('/:productId/variants/:variantId', validate(deleteVariantSchema), asyncHandler(deleteVariant))
 
 export default router
