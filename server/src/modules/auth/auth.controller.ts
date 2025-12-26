@@ -7,19 +7,28 @@ import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
 export const register = async (req: Request, res: Response) => {
-  const { name, email, phone, password } = req.body
+  const { email, password, confirmPassword, fullName } = req.body
 
-  // Kiểm tra email và phone tồn tại
-  const existedErrors: ValidationError['errors'] = []
+  // // Kiểm tra email và phone tồn tại
+  // const existedErrors: ValidationError['errors'] = []
 
-  const existedEmail = await prisma.user.findUnique({ where: { email } })
-  if (existedEmail) existedErrors.push({ field: 'email', message: 'Email đã tồn tại' })
+  // const existedEmail = await prisma.user.findUnique({ where: { email } })
+  // if (existedEmail) existedErrors.push({ field: 'email', message: 'Email đã tồn tại' })
 
-  const existedPhone = await prisma.user.findUnique({ where: { phone } })
-  if (existedPhone) existedErrors.push({ field: 'phone', message: 'Số điện thoại đã tồn tại' })
+  // const existedPhone = await prisma.user.findUnique({ where: { phone } })
+  // if (existedPhone) existedErrors.push({ field: 'phone', message: 'Số điện thoại đã tồn tại' })
 
-  if (existedErrors.length > 0) {
-    throw new ValidationError(existedErrors)
+  // if (existedErrors.length > 0) {
+  //   throw new ValidationError(existedErrors)
+  // }
+
+  const exists = await prisma.user.findUnique({ where: { email } })
+  if (exists) {
+    throw new AppError(400, 'Email đã được sử dụng')
+  }
+
+  if (password !== confirmPassword) {
+    throw new AppError(400, 'Mật khẩu xác nhận không khớp')
   }
 
   // Hash password
@@ -27,16 +36,14 @@ export const register = async (req: Request, res: Response) => {
 
   const user = await prisma.user.create({
     data: {
-      name,
       email,
-      phone,
+      fullName,
       password: hashedPassword
     },
     select: {
       id: true,
-      name: true,
+      fullName: true,
       email: true,
-      phone: true,
       createdAt: true
     }
   })
@@ -51,11 +58,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     where: { email },
     select: {
       id: true,
-      name: true,
+      fullName: true,
       email: true,
       password: true,
       role: true,
-      avatar: { select: { url: true, publicId: true } }
+      avatar: true
     }
   })
   if (!user) {
@@ -131,7 +138,7 @@ export const logout = async (req: Request, res: Response) => {
     httpOnly: true
   })
 
-  console.log('req.cookies :>> ', req.cookies)
+  console.log('req.cookies :>> ', { accessToken, refreshToken })
   responseHandler(res, 200, 'Đăng xuất thành công')
 }
 
@@ -155,9 +162,10 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
 
   res.cookie('accessToken', newAccessToken, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    path: '/',
     maxAge: Number(process.env.ACCESS_TOKEN_COOKIE_EXPIRES)
-    // sameSite: "Strict",
-    // secure: true,
   })
 
   responseHandler(res, 200, 'Làm mới token thành công', newAccessToken)

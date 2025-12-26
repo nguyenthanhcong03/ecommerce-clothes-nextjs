@@ -3,10 +3,9 @@ import { z } from 'zod'
 // Schema cho tạo category
 export const createCategorySchema = z.object({
   body: z.object({
-    name: z.string().min(1, 'Danh mục là bắt buộc'),
+    name: z.string().min(1, 'Tên danh mục là bắt buộc'),
     slug: z.string().min(1, 'Slug là bắt buộc'),
-    description: z.string().optional(),
-    isActive: z.preprocess((val) => val === 'true' || val === true, z.boolean().optional().default(true))
+    parentId: z.preprocess((val) => (val ? parseInt(val as string) : undefined), z.number().int().positive().optional())
   })
 })
 
@@ -18,11 +17,10 @@ export const updateCategorySchema = z.object({
   body: z.object({
     name: z.string().min(1, 'Tên danh mục là bắt buộc').optional(),
     slug: z.string().min(1, 'Slug là bắt buộc').optional(),
-    description: z.string().optional(),
-    isActive: z.preprocess((val) => {
-      if (val === undefined) return undefined
-      return val === 'true' || val === true
-    }, z.boolean().optional())
+    parentId: z.preprocess((val) => {
+      if (val === undefined || val === null || val === '') return undefined
+      return parseInt(val as string)
+    }, z.number().int().positive().optional().nullable())
   })
 })
 
@@ -46,7 +44,7 @@ export const getCategoriesSchema = z.object({
     page: z.string().regex(/^\d+$/).optional().default('1'),
     limit: z.string().regex(/^\d+$/).optional().default('10'),
     search: z.string().optional(),
-    isActive: z.enum(['true', 'false']).optional()
+    parentId: z.string().regex(/^\d+$/).optional()
   })
 })
 

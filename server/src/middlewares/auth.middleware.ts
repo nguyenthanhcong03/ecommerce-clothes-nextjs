@@ -6,7 +6,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      user?: { id: number; name: string; email: string; avatar: string; role: 'customer' | 'admin' } | null // null nếu chưa login
+      user?: { id: number; fullName: string; email: string; avatar: string; role: 'customer' | 'admin' } | null // null nếu chưa login
     }
   }
 }
@@ -26,7 +26,7 @@ export const authRequired = async (req: Request, res: Response, next: NextFuncti
     // Gắn thông tin người dùng vào request để sử dụng trong các middleware hoặc route tiếp theo
     req.user = {
       id: decoded.id,
-      name: decoded.name,
+      fullName: decoded.fullName,
       email: decoded.email,
       avatar: decoded.avatar,
       role: decoded.role
@@ -54,7 +54,7 @@ export const authOptional = (req: Request, res: Response, next: NextFunction) =>
     // Gắn thông tin người dùng vào request để sử dụng trong các middleware hoặc route tiếp theo
     req.user = {
       id: decoded.id,
-      name: decoded.name,
+      fullName: decoded.fullName,
       email: decoded.email,
       avatar: decoded.avatar,
       role: decoded.role
